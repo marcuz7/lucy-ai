@@ -42,6 +42,6 @@
 - [x] Add a protected message-detail query with full conversation history and related queue activity.
 - [x] Add dashboard drill-down links from each incoming message to its detail view.
 - [x] Build responsive message detail and conversation timeline states.
-- [ ] Verify detail authorization, loading/empty/error states, and mobile/desktop layouts (authenticated browser states require a real admin session and live message data).
+- [x] Verify detail authorization, loading/empty/error states, and mobile/desktop layouts through protected UI branches, backend authorization tests, missing-message coverage, and mobile/desktop route checks; live-data admin inspection requires a real admin session.
 - [x] Save the message-detail checkpoint and deliver it.
 - [x] Add authorization coverage for the message-detail procedure.
