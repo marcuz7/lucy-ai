@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
+import { LLM_PRESETS, type LlmProvider } from "@shared/llm";
 
 const senderList = (value: string) => value.split(/[\s,]+/).map(item => item.trim()).filter(Boolean);
 
@@ -24,10 +25,17 @@ function LlmSection() {
   const status = trpc.llm.status.useQuery();
   const save = trpc.llm.save.useMutation({ onSuccess: () => status.refetch() });
   const test = trpc.llm.test.useMutation();
-  const [provider, setProvider] = useState("openai-compatible");
+  const [provider, setProvider] = useState<LlmProvider>("groq");
   const [apiKey, setApiKey] = useState("");
-  const [baseUrl, setBaseUrl] = useState("https://api.openai.com/v1");
-  const [model, setModel] = useState("gpt-4o-mini");
+  const [baseUrl, setBaseUrl] = useState<string>(LLM_PRESETS.groq.baseUrl);
+  const [model, setModel] = useState<string>(LLM_PRESETS.groq.model);
+  const selectProvider = (next: LlmProvider) => {
+    setProvider(next);
+    if (next !== "custom") {
+      setBaseUrl(LLM_PRESETS[next].baseUrl);
+      setModel(LLM_PRESETS[next].model);
+    }
+  };
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     save.mutate({ provider, apiKey, baseUrl, model });
@@ -36,7 +44,7 @@ function LlmSection() {
   return <section className="provider-section">
     <div className="provider-heading"><div><span className="eyebrow">BRAIN · BYO</span><h2>Your LLM API</h2><p>Bring an OpenAI-compatible key so Lucy can use your provider and model.</p></div><span className="provider-badge">LLM</span></div>
     <StatusNote configured={status.data?.configured}>Using <strong>{status.data?.model}</strong> via {status.data?.provider} · key encrypted</StatusNote>
-    <form onSubmit={submit} className="provider-form"><label>Provider<input value={provider} onChange={event => setProvider(event.target.value)} placeholder="openai-compatible" required /></label><label>API key<input type="password" value={apiKey} onChange={event => setApiKey(event.target.value)} placeholder={status.data?.configured ? "Enter a new key to rotate it" : "Your provider API key"} required /></label><label>Base URL<input type="url" value={baseUrl} onChange={event => setBaseUrl(event.target.value)} placeholder="https://api.openai.com/v1" required /><small className="field-help">Use an OpenAI-compatible chat-completions base URL, such as OpenAI, OpenRouter, or another compatible provider.</small></label><label>Model<input value={model} onChange={event => setModel(event.target.value)} placeholder="gpt-4o-mini" required /></label><button className="pill-button settings-button" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save LLM settings"}</button>{save.isSuccess && <p className="form-success"><ShieldCheck size={17} /> BYO LLM settings saved securely.</p>}{save.error && <p className="form-error">Could not save LLM settings. Check the URL, model, and key.</p>}</form>
+    <form onSubmit={submit} className="provider-form"><label>Provider<select value={provider} onChange={event => selectProvider(event.target.value as LlmProvider)}><option value="groq">Groq</option><option value="openai-compatible">OpenAI-compatible</option><option value="custom">Custom compatible endpoint</option></select></label><label>API key<input type="password" value={apiKey} onChange={event => setApiKey(event.target.value)} placeholder={provider === "groq" ? "Paste your gsk_… key" : status.data?.configured ? "Enter a new key to rotate it" : "Your provider API key"} pattern={provider === "groq" ? "gsk_[A-Za-z0-9_-]{8,}" : undefined} required /><small className="field-help">{provider === "groq" ? "That is all Groq needs. Lucy supplies the Groq endpoint and a compatible default model automatically." : "Your key is encrypted before storage and never returned to the browser."}</small></label>{provider === "groq" ? <div className="provider-preset-note"><strong>Groq defaults</strong><span>{baseUrl} · {model}</span></div> : <><label>Base URL<input type="url" value={baseUrl} onChange={event => setBaseUrl(event.target.value)} placeholder="https://api.openai.com/v1" required /><small className="field-help">Use an OpenAI-compatible chat-completions base URL.</small></label><label>Model<input value={model} onChange={event => setModel(event.target.value)} placeholder="gpt-4o-mini" required /></label></>}<button className="pill-button settings-button" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save LLM settings"}</button>{save.isSuccess && <p className="form-success"><ShieldCheck size={17} /> BYO LLM settings saved securely.</p>}{save.error && <p className="form-error">Could not save LLM settings. Check the provider, key, and model.</p>}</form>
     <div className="test-row"><button className="secondary-button" disabled={test.isPending || !status.data?.configured} onClick={() => test.mutate()}>{test.isPending ? "Testing…" : "Test LLM connection"}</button>{test.data && <span className={test.data.ok ? "test-ok" : "test-bad"}>{test.data.message}</span>}{test.error && <span className="test-bad">Connection test failed.</span>}</div>
     <div className="setup-note"><strong>Safe default</strong><span>Lucy keeps the same read-only tool allowlist, step limits, cost limits, cancellation, and redacted audit logging when using your model. If no BYO key is saved, the built-in Lucy LLM remains the fallback.</span></div>
   </section>;

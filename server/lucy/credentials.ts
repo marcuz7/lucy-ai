@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { lucyLlmCredentials, lucyTelnyxCredentials, lucyTwilioCredentials } from "../../drizzle/schema";
+import { resolveLlmSettings } from "../../shared/llm";
 
 const algorithm = "aes-256-gcm";
 
@@ -109,14 +110,14 @@ export async function getTelnyxCredentialStatus(ownerUserId: number) {
 }
 
 export async function saveLlmCredentials(ownerUserId: number, input: { provider: string; apiKey: string; baseUrl: string; model: string }) {
+  const resolved = resolveLlmSettings(input);
   const db = await getDb();
   if (!db) throw new Error("Database is not configured");
-  const baseUrl = input.baseUrl.trim().replace(/\/+$/, "");
-  const parsed = new URL(baseUrl);
+  const parsed = new URL(resolved.baseUrl);
   if (parsed.protocol !== "https:" && process.env.NODE_ENV === "production") throw new Error("BYO LLM base URL must use HTTPS");
-  if (!input.apiKey.trim() || !input.model.trim()) throw new Error("LLM API key and model are required");
-  await db.insert(lucyLlmCredentials).values({ ownerUserId, provider: input.provider.trim() || "openai-compatible", apiKeyEncrypted: encryptSecret(input.apiKey.trim()), baseUrl, model: input.model.trim() }).onDuplicateKeyUpdate({
-    set: { provider: input.provider.trim() || "openai-compatible", apiKeyEncrypted: encryptSecret(input.apiKey.trim()), baseUrl, model: input.model.trim(), updatedAt: new Date() },
+  if (!resolved.apiKey || !resolved.model) throw new Error("LLM API key and model are required");
+  await db.insert(lucyLlmCredentials).values({ ownerUserId, provider: resolved.provider, apiKeyEncrypted: encryptSecret(resolved.apiKey), baseUrl: resolved.baseUrl, model: resolved.model }).onDuplicateKeyUpdate({
+    set: { provider: resolved.provider, apiKeyEncrypted: encryptSecret(resolved.apiKey), baseUrl: resolved.baseUrl, model: resolved.model, updatedAt: new Date() },
   });
 }
 
@@ -126,8 +127,10 @@ export async function testLlmCredentials(ownerUserId: number) {
   const rows = await db.select().from(lucyLlmCredentials).where(eq(lucyLlmCredentials.ownerUserId, ownerUserId)).limit(1);
   const row = rows[0];
   if (!row) return { ok: false, message: "No BYO LLM credentials are saved yet." };
-  const response = await fetch(`${row.baseUrl.replace(/\/+$/, "")}/models`, { headers: { Authorization: `Bearer ${decryptSecret(row.apiKeyEncrypted)}` } });
-  return response.ok ? { ok: true, message: "BYO LLM endpoint is reachable." } : { ok: false, message: "The BYO LLM endpoint rejected these credentials." };
+  const apiKey = decryptSecret(row.apiKeyEncrypted);
+  const resolved = resolveLlmSettings({ provider: row.provider, apiKey, baseUrl: row.baseUrl, model: row.model });
+  const response = await fetch(`${resolved.baseUrl}/models`, { headers: { Authorization: `Bearer ${apiKey}` } });
+  return response.ok ? { ok: true, message: `${resolved.provider === "groq" ? "Groq" : "BYO LLM"} endpoint is reachable.` } : { ok: false, message: `${resolved.provider === "groq" ? "Groq" : "BYO LLM"} rejected these credentials. Check the key and model.` };
 }
 
 export function summarizeLlmCredential(row: { provider: string; baseUrl: string; model: string; updatedAt: Date } | null) {
@@ -146,7 +149,9 @@ export async function getLlmCredentialsForAgent() {
   if (!db) return null;
   const rows = await db.select().from(lucyLlmCredentials).orderBy(desc(lucyLlmCredentials.updatedAt)).limit(1);
   const row = rows[0];
-  return row ? { provider: row.provider, apiKey: decryptSecret(row.apiKeyEncrypted), baseUrl: row.baseUrl, model: row.model } : null;
+  if (!row) return null;
+  const apiKey = decryptSecret(row.apiKeyEncrypted);
+  return resolveLlmSettings({ provider: row.provider, apiKey, baseUrl: row.baseUrl, model: row.model });
 }
 
 export async function getTwilioCredentialStatus(ownerUserId: number) {

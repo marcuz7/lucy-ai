@@ -165,3 +165,9 @@
 - [x] Add encrypted BYO LLM API-key configuration to the unified protected admin settings page, with provider/base-URL/model controls and masked status.
 - [x] Route the managed agent through the configured BYO LLM provider when enabled, while preserving the built-in LLM fallback and safe tool behavior.
 - [x] Add authorization, redaction, fallback, and provider-selection regression coverage; verify the UI and save a checkpoint.
+
+- [x] Fix BYO LLM provider selection so Groq/OpenAI-compatible presets keep base URL and model aligned and surface actionable test failures.
+- [x] Add regression coverage for provider preset normalization and mismatch rejection, then verify mobile UI and save a checkpoint.
+
+- [x] Add a Groq preset so admins can paste a single gsk_ API key while endpoint and default model are supplied automatically.
+- [x] Validate Groq key format and add regression coverage for Groq defaults and actionable connection failures.
