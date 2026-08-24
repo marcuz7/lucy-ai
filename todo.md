@@ -30,3 +30,11 @@
 - [x] Add masking, validation, and credential test feedback without exposing secrets.
 - [x] Verify regular-user access is denied and admin flows work responsively.
 - [x] Save the admin-enabled Lucy checkpoint and deliver it.
+
+- [x] Add persisted incoming-message records linked to Lucy conversations.
+- [x] Add admin-only dashboard queries for message history and queue status.
+- [x] Build the responsive admin dashboard with queue metrics, filters, and recent messages.
+- [x] Verify admin authorization, empty/loading/error states, and mobile/desktop layouts.
+- [x] Save the admin dashboard checkpoint and deliver it.
+
+- [x] Fix the deployed landing page brand regression so all visible Boba copy renders as Lucy.

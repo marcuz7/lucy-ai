@@ -17,8 +17,14 @@ describe("admin Twilio access", () => {
     await expect(caller.twilio.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("allows an admin to read masked status", async () => {
+  it("allows an admin to read masked status and dashboard data", async () => {
     const caller = appRouter.createCaller(context("admin"));
     await expect(caller.twilio.status()).resolves.toMatchObject({ configured: false });
+    await expect(caller.dashboard.summary()).resolves.toHaveProperty("queue");
+  });
+
+  it("rejects a regular user from the dashboard", async () => {
+    const caller = appRouter.createCaller(context("user"));
+    await expect(caller.dashboard.summary()).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });

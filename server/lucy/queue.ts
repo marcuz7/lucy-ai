@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 import mysql from "mysql2/promise";
+import { lucyMessages } from "../../drizzle/schema";
+import { getDb } from "../db";
 import type { ChannelAdapter, InboundMessage } from "./types";
 import { processInbound } from "./pipeline";
 
@@ -18,6 +20,10 @@ export async function enqueueMessage(message: InboundMessage, adapter: ChannelAd
     // Local stub mode only. Production uses the durable table below.
     await processInbound(message, adapter);
     return;
+  }
+  const drizzleDb = await getDb();
+  if (drizzleDb) {
+    await drizzleDb.insert(lucyMessages).values({ id: message.id, channel: message.channel, senderId: message.senderId, chatId: message.chatId, text: message.text, mediaCount: message.media.length }).onDuplicateKeyUpdate({ set: { text: message.text } });
   }
   await db.execute(
     "INSERT INTO lucy_jobs (id, message_id, chat_id, payload, status, attempts, available_at) VALUES (?, ?, ?, ?, 'pending', 0, NOW())",
