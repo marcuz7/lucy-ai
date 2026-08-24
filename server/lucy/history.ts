@@ -19,5 +19,7 @@ export async function getMessageDetail(messageId: string) {
   const message = messageRows[0];
   if (!message) return null;
   const events = await db.select({ id: lucyConversationEvents.id, role: lucyConversationEvents.role, text: lucyConversationEvents.text, messageId: lucyConversationEvents.messageId, createdAt: lucyConversationEvents.createdAt }).from(lucyConversationEvents).where(eq(lucyConversationEvents.chatId, message.chatId)).orderBy(desc(lucyConversationEvents.createdAt)).limit(100);
-  return { message, events: events.reverse(), jobs: jobRows };
+  let media: Array<{ url: string; contentType: string }> = [];
+  try { media = message.mediaJson ? JSON.parse(message.mediaJson) : []; } catch { media = []; }
+  return { message: { ...message, media }, events: events.reverse(), jobs: jobRows };
 }

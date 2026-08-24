@@ -1,0 +1,1 @@
+ALTER TABLE `lucy_messages` ADD `media_json` text;

@@ -56,3 +56,23 @@
 - [x] Add click-to-copy behavior with clipboard fallback and success feedback.
 - [x] Verify keyboard accessibility and mobile/desktop behavior through a native button with focus styling, clipboard fallback, explicit feedback labeling, and mobile/desktop visual checks.
 - [x] Save and deliver the interactive phone demo checkpoint.
+
+- [ ] Replace the demo launch number with +84837841663.
+- [ ] Link the launch card to a native SMS composer using the provisioned number.
+- [ ] Add a desktop QR code for launching Lucy by message.
+- [ ] Add image and voice-note previews to conversation details.
+- [ ] Add privacy-safe export and redaction controls for conversation records.
+- [ ] Inspect a live conversation in an authenticated admin session.
+- [ ] Verify launch, media, export/redaction, and responsive admin flows.
+- [ ] Save and deliver the completed Lucy upgrade checkpoint.
+
+- [x] Replace Boba Landing Recreation with LucyAi in project-facing titles and metadata.
+- [x] Update the OAuth/sign-in project title to LucyAi through the managed application-title setting.
+- [x] Search for and remove remaining user-facing legacy references; remaining repository-name strings are internal project identifiers/log history.
+- [x] Verify public, admin, and authentication entry points after the rename.
+- [x] Save and deliver the LucyAi rename checkpoint.
+
+- [x] Replace the old logo asset with the provided head-and-lightbulb logo.
+- [x] Update visible logo references and favicon to the new asset.
+- [x] Verify the new logo on public and admin entry points.
+- [x] Save and deliver the logo replacement checkpoint.

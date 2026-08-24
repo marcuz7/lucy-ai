@@ -38,6 +38,7 @@ export const lucyMessages = mysqlTable("lucy_messages", {
   chatId: varchar("chat_id", { length: 191 }).notNull(),
   text: text("text").notNull(),
   mediaCount: int("media_count").default(0).notNull(),
+  mediaJson: text("media_json"),
   receivedAt: timestamp("received_at").defaultNow().notNull(),
 });
 

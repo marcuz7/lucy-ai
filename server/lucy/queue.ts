@@ -23,7 +23,7 @@ export async function enqueueMessage(message: InboundMessage, adapter: ChannelAd
   }
   const drizzleDb = await getDb();
   if (drizzleDb) {
-    await drizzleDb.insert(lucyMessages).values({ id: message.id, channel: message.channel, senderId: message.senderId, chatId: message.chatId, text: message.text, mediaCount: message.media.length }).onDuplicateKeyUpdate({ set: { text: message.text } });
+    await drizzleDb.insert(lucyMessages).values({ id: message.id, channel: message.channel, senderId: message.senderId, chatId: message.chatId, text: message.text, mediaCount: message.media.length, mediaJson: JSON.stringify(message.media) }).onDuplicateKeyUpdate({ set: { text: message.text, mediaJson: JSON.stringify(message.media) } });
   }
   await db.execute(
     "INSERT INTO lucy_jobs (id, message_id, chat_id, payload, status, attempts, available_at) VALUES (?, ?, ?, ?, 'pending', 0, NOW())",
