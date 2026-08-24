@@ -155,3 +155,5 @@
 - [x] Add a dashboard-summary regression proving Telnyx-originated messages appear in the admin inbox query.
 - [x] Assert exact Telnyx outbound text for STOP and rate-limit replies.
 - [x] Save the completed Telnyx P0 checkpoint after the expanded verification passes.
+
+- [x] Fix the missing post-login navigation entry to the Telnyx configuration page and verify the route is discoverable to admins.

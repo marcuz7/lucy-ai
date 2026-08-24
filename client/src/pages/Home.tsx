@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { ArrowRight, Check, CheckCheck, Copy, MessageCircle, Plus, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
+import { Link } from "wouter";
 import { copyFeedbackLabel } from "./copyFeedback";
 
 const pickleballImage = "/manus-storage/pickleball-blue-court_2e8ca9c0.jpg";
@@ -38,7 +40,9 @@ function Logo() {
 }
 
 function Header({ onText }: { onText: () => void }) {
-  return <header className="site-header"><div className="header-inner"><Logo /><div className="header-right"><span className="header-kicker">YOUR FIRST AI AGENT</span><button className="signup-link" onClick={() => startLogin()}>Sign up</button><button className="pill-button header-cta" onClick={onText}>Launch Lucy</button></div></div></header>;
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  return <header className="site-header"><div className="header-inner"><Logo /><div className="header-right"><span className="header-kicker">YOUR FIRST AI AGENT</span>{isAdmin ? <Link href="/admin/telnyx" className="signup-link">Configure Telnyx</Link> : <button className="signup-link" onClick={() => startLogin()}>Sign up</button>}<button className="pill-button header-cta" onClick={onText}>Launch Lucy</button></div></div></header>;
 }
 
 function PhoneMockup() {
