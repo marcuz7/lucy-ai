@@ -45,3 +45,9 @@
 - [x] Verify detail authorization, loading/empty/error states, and mobile/desktop layouts through protected UI branches, backend authorization tests, missing-message coverage, and mobile/desktop route checks; live-data admin inspection requires a real admin session.
 - [x] Save the message-detail checkpoint and deliver it.
 - [x] Add authorization coverage for the message-detail procedure.
+
+- [x] Replace reference-derived public copy with original Lucy positioning and messaging.
+- [x] Reframe the hero around “your first AI agent,” zero installation, and message-to-launch.
+- [x] Rewrite feature cards, onboarding steps, FAQ, CTA, and metadata in Lucy’s own voice.
+- [x] Verify the new public site at mobile and desktop widths without breaking admin routes.
+- [x] Save and deliver the differentiated Lucy website checkpoint.
