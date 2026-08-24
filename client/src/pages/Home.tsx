@@ -41,8 +41,8 @@ function Logo() {
 
 function Header({ onText }: { onText: () => void }) {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
-  return <header className="site-header"><div className="header-inner"><Logo /><div className="header-right"><span className="header-kicker">YOUR FIRST AI AGENT</span>{isAdmin ? <Link href="/admin/settings" className="signup-link">Admin settings</Link> : <button className="signup-link" onClick={() => startLogin()}>Sign up</button>}<button className="pill-button header-cta" onClick={onText}>Launch Lucy</button></div></div></header>;
+  const isSuperAdmin = user?.isSuperAdmin === true;
+  return <header className="site-header"><div className="header-inner"><Logo /><div className="header-right"><span className="header-kicker">YOUR FIRST AI AGENT</span>{isSuperAdmin ? <Link href="/admin/settings" className="signup-link">Super-admin settings</Link> : <button className="signup-link" onClick={() => startLogin()}>Sign up</button>}<button className="pill-button header-cta" onClick={onText}>Launch Lucy</button></div></div></header>;
 }
 
 function PhoneMockup() {

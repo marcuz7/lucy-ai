@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { appRouter } from "../routers";
 import type { TrpcContext } from "../_core/context";
 
-function context(role: "admin" | "user"): TrpcContext {
+function context(role: "admin" | "user", openId = role === "admin" ? process.env.OWNER_OPEN_ID : "test-user"): TrpcContext {
   const now = new Date();
   return {
-    user: { id: 42, openId: "test-user", name: "Test User", email: "test@example.com", loginMethod: "test", role, createdAt: now, updatedAt: now, lastSignedIn: now },
+    user: { id: 42, openId: openId ?? "", name: "Test User", email: "test@example.com", loginMethod: "test", role, createdAt: now, updatedAt: now, lastSignedIn: now },
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: {} as TrpcContext["res"],
   };
@@ -22,6 +22,16 @@ describe("admin BYO LLM access", () => {
   it("allows an admin to read masked BYO LLM status", async () => {
     const caller = appRouter.createCaller(context("admin"));
     await expect(caller.llm.status()).resolves.toMatchObject({ configured: false, apiKeyConfigured: false });
+  });
+});
+
+describe("super-admin secret access", () => {
+  it("rejects a non-owner admin from provider secrets", async () => {
+    const caller = appRouter.createCaller(context("admin", "different-admin"));
+    await expect(caller.search.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.llm.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.twilio.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.telnyx.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });
 

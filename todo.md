@@ -177,3 +177,7 @@
 - [x] Add encrypted Tavily API-key setup to the protected unified admin settings page with masked status and connection testing.
 - [x] Route the existing `search_web` tool through Tavily when configured while preserving the built-in search fallback, budgets, and redaction.
 - [x] Add Tavily validation/provider-selection tests, verify the settings UI and build, and save a checkpoint.
+
+- [x] Restrict Twilio, Telnyx, LLM, and Tavily credential read/save/test operations to the designated super-admin owner.
+- [x] Update settings UI and navigation to distinguish super-admin secret management from ordinary admin monitoring.
+- [x] Add super-admin authorization and secret-redaction regression coverage, verify the app, and save a checkpoint.

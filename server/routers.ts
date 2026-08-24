@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { adminProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, publicProcedure, router, superAdminProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { getLlmCredentialStatus, getTavilyCredentialStatus, getTelnyxCredentialStatus, getTwilioCredentialStatus, saveLlmCredentials, saveTavilyCredentials, saveTelnyxCredentials, saveTwilioCredentials, testLlmCredentials, testTavilyCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
 import { getAgentRuns, getDashboardSummary, getQueueJobs } from "./lucy/dashboard";
@@ -12,7 +12,7 @@ export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => opts.ctx.user ? { ...opts.ctx.user, isSuperAdmin: opts.ctx.user.role === "admin" && opts.ctx.user.openId === process.env.OWNER_OPEN_ID } : null),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -31,9 +31,9 @@ export const appRouter = router({
   }),
 
   telnyx: router({
-    status: adminProcedure.query(({ ctx }) => getTelnyxCredentialStatus(ctx.user.id)),
-    test: adminProcedure.mutation(({ ctx }) => testTelnyxCredentials(ctx.user.id)),
-    save: adminProcedure.input(z.object({
+    status: superAdminProcedure.query(({ ctx }) => getTelnyxCredentialStatus(ctx.user.id)),
+    test: superAdminProcedure.mutation(({ ctx }) => testTelnyxCredentials(ctx.user.id)),
+    save: superAdminProcedure.input(z.object({
       apiKey: z.string().min(8).max(512),
       publicKey: z.string().min(16).max(2048),
       phoneNumber: z.string().regex(/^\\+[1-9]\\d{7,14}$/, "Use E.164 format, for example +15551234567"),
@@ -45,18 +45,18 @@ export const appRouter = router({
   }),
 
   search: router({
-    status: adminProcedure.query(({ ctx }) => getTavilyCredentialStatus(ctx.user.id)),
-    test: adminProcedure.mutation(({ ctx }) => testTavilyCredentials(ctx.user.id)),
-    save: adminProcedure.input(z.object({ apiKey: z.string().min(8).max(512) })).mutation(async ({ ctx, input }) => {
+    status: superAdminProcedure.query(({ ctx }) => getTavilyCredentialStatus(ctx.user.id)),
+    test: superAdminProcedure.mutation(({ ctx }) => testTavilyCredentials(ctx.user.id)),
+    save: superAdminProcedure.input(z.object({ apiKey: z.string().min(8).max(512) })).mutation(async ({ ctx, input }) => {
       await saveTavilyCredentials(ctx.user.id, input.apiKey);
       return { success: true } as const;
     }),
   }),
 
   llm: router({
-    status: adminProcedure.query(({ ctx }) => getLlmCredentialStatus(ctx.user.id)),
-    test: adminProcedure.mutation(({ ctx }) => testLlmCredentials(ctx.user.id)),
-    save: adminProcedure.input(z.object({
+    status: superAdminProcedure.query(({ ctx }) => getLlmCredentialStatus(ctx.user.id)),
+    test: superAdminProcedure.mutation(({ ctx }) => testLlmCredentials(ctx.user.id)),
+    save: superAdminProcedure.input(z.object({
       provider: z.string().min(1).max(32),
       apiKey: z.string().min(8).max(512),
       baseUrl: z.string().url().max(512),
@@ -68,9 +68,9 @@ export const appRouter = router({
   }),
 
   twilio: router({
-    status: adminProcedure.query(({ ctx }) => getTwilioCredentialStatus(ctx.user.id)),
-    test: adminProcedure.mutation(({ ctx }) => testTwilioCredentials(ctx.user.id)),
-    save: adminProcedure.input(z.object({
+    status: superAdminProcedure.query(({ ctx }) => getTwilioCredentialStatus(ctx.user.id)),
+    test: superAdminProcedure.mutation(({ ctx }) => testTwilioCredentials(ctx.user.id)),
+    save: superAdminProcedure.input(z.object({
       accountSid: z.string().min(10).max(64),
       authToken: z.string().min(8).max(256),
       phoneNumber: z.string().regex(/^\\+[1-9]\\d{7,14}$/, "Use E.164 format, for example +15551234567"),
