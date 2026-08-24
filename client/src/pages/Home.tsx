@@ -6,6 +6,7 @@ import { copyFeedbackLabel } from "./copyFeedback";
 import { QRCodeSVG } from "qrcode.react";
 
 const logoMark = "/manus-storage/lucyai-logo_3ce5ef2d.jpeg";
+const logoLockup = "/manus-storage/lucyai-full-lockup_5e24f2f6.png";
 const pickleballImage = "/manus-storage/pickleball-blue-court_2e8ca9c0.jpg";
 const dinnerImage = "/manus-storage/dinner-table_decb8fd1.jpg";
 const cabinImage = "/manus-storage/cabin-sunset_54a8ba8b.jpg";
@@ -35,7 +36,7 @@ const faqs = [
   ["How does Lucy handle my data?", "Lucy uses conversation context to make its help more useful. We do not sell your messages or use your phone number for marketing. Review the Privacy Notice for the complete policy."],
 ];
 
-function Logo() { return <a href="#top" className="brand" aria-label="Lucy home"><img src={logoMark} alt="" /><span>Lucy</span></a>; }
+function Logo() { return <a href="#top" className="brand" aria-label="LucyAi home"><img src={logoLockup} alt="Lucy.ai" /></a>; }
 function Header({ onText }: { onText: () => void }) { return <header className="site-header"><div className="header-inner"><Logo /><div className="header-right"><span className="header-kicker">YOUR FIRST AI AGENT</span><button className="signup-link" onClick={() => startLogin()}>Sign up</button><button className="pill-button header-cta" onClick={onText}>Launch Lucy</button></div></div></header>; }
 function PhoneMockup() {
   const [copied, setCopied] = useState(false);

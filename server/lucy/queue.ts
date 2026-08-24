@@ -9,6 +9,14 @@ let pool: mysql.Pool | null = null;
 let draining: Promise<void> | null = null;
 const activeChats = new Set<string>();
 
+export function decodeQueuePayload(payload: unknown): InboundMessage {
+  if (typeof payload === "string" || Buffer.isBuffer(payload)) {
+    return JSON.parse(String(payload)) as InboundMessage;
+  }
+  if (payload && typeof payload === "object") return payload as InboundMessage;
+  throw new Error("Queue payload is empty or invalid");
+}
+
 function getPool() {
   if (!pool && process.env.DATABASE_URL) pool = mysql.createPool(process.env.DATABASE_URL);
   return pool;
@@ -68,7 +76,7 @@ export async function drainQueue(adapter: ChannelAdapter) {
       await Promise.all(selected.map(async row => {
         const chatId = String(row.chat_id);
         try {
-          await processInbound(JSON.parse(String(row.payload)) as InboundMessage, adapter);
+          await processInbound(decodeQueuePayload(row.payload), adapter);
           await db.execute("UPDATE lucy_jobs SET status = 'completed', completed_at = NOW() WHERE id = ?", [row.id]);
         } catch (error) {
           await db.execute("UPDATE lucy_jobs SET status = IF(attempts >= 3, 'dead_letter', 'pending'), available_at = DATE_ADD(NOW(), INTERVAL attempts * 10 SECOND), last_error = ? WHERE id = ?", [String(error), row.id]);

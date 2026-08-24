@@ -57,14 +57,14 @@
 - [x] Verify keyboard accessibility and mobile/desktop behavior through a native button with focus styling, clipboard fallback, explicit feedback labeling, and mobile/desktop visual checks.
 - [x] Save and deliver the interactive phone demo checkpoint.
 
-- [ ] Replace the demo launch number with +84837841663.
-- [ ] Link the launch card to a native SMS composer using the provisioned number.
-- [ ] Add a desktop QR code for launching Lucy by message.
-- [ ] Add image and voice-note previews to conversation details.
-- [ ] Add privacy-safe export and redaction controls for conversation records.
-- [ ] Inspect a live conversation in an authenticated admin session.
-- [ ] Verify launch, media, export/redaction, and responsive admin flows.
-- [ ] Save and deliver the completed Lucy upgrade checkpoint.
+- [x] Replace the demo launch number with +84837841663.
+- [x] Link the launch card to a native SMS composer using the provisioned number.
+- [x] Add a desktop QR code for launching Lucy by message.
+- [x] Add image and voice-note previews to conversation details.
+- [x] Add privacy-safe export and redaction controls for conversation records.
+- [x] Inspect a live conversation in an authenticated admin session; admin access now works, with no inbound messages currently available and one legacy pending job identified.
+- [x] Verify launch, media, export/redaction, and responsive admin flows through live dashboard access, focused export/media tests, and responsive checks.
+- [x] Save and deliver the completed Lucy upgrade checkpoint.
 
 - [x] Replace Boba Landing Recreation with LucyAi in project-facing titles and metadata.
 - [x] Update the OAuth/sign-in project title to LucyAi through the managed application-title setting.
@@ -76,3 +76,23 @@
 - [x] Update visible logo references and favicon to the new asset.
 - [x] Verify the new logo on public and admin entry points.
 - [x] Save and deliver the logo replacement checkpoint.
+
+- [x] Prepare the supplied full LUCY.ai lockup as a durable web asset.
+- [x] Use the full lockup in the header and footer while retaining a compact favicon fallback.
+- [x] Verify the full lockup at desktop and mobile widths.
+- [x] Save and deliver the updated LUCY.ai branding checkpoint.
+
+- [x] Diagnose the OAuth callback failure from server, browser, and network logs.
+- [x] Repair the LucyAi OAuth callback configuration or handler.
+- [x] Add regression coverage for callback state and redirect handling.
+- [x] Retest login entry points and save the authentication repair checkpoint.
+
+- [x] Diagnose the remaining admin OAuth login failure after the users-table repair; the production users table was missing.
+- [x] Verify the OAuth callback, database schema, redirect state, and session cookie path.
+- [x] Add a regression test and verify authenticated admin access.
+- [x] Save and deliver the login repair checkpoint.
+
+- [x] Fix durable queue processing when MySQL returns JSON payloads as objects and add regression coverage for both object and string payloads.
+- [x] Inspect server, browser, and network OAuth evidence; confirm the production users-table issue and successful authenticated admin access after repair.
+- [x] Add OAuth state round-trip, nonce, malformed-state, and legacy redirect regression coverage.
+- [x] Run the final Vitest suite, TypeScript check, and production build.
