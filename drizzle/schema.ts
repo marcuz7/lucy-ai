@@ -1,0 +1,35 @@
+import { int, json, mysqlEnum, mysqlTable, text, timestamp, varchar, index } from "drizzle-orm/mysql-core";
+
+export const users = mysqlTable("users", {
+  id: int("id").autoincrement().primaryKey(),
+  openId: varchar("openId", { length: 64 }).notNull().unique(),
+  name: text("name"),
+  email: varchar("email", { length: 320 }),
+  loginMethod: varchar("loginMethod", { length: 64 }),
+  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+});
+
+export const lucyJobs = mysqlTable("lucy_jobs", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  messageId: varchar("message_id", { length: 191 }).notNull().unique(),
+  chatId: varchar("chat_id", { length: 191 }).notNull(),
+  payload: json("payload").notNull(),
+  status: mysqlEnum("status", ["pending", "processing", "completed", "dead_letter"]).default("pending").notNull(),
+  attempts: int("attempts").default(0).notNull(),
+  availableAt: timestamp("available_at").defaultNow().notNull(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, table => ({
+  statusAvailableIdx: index("idx_lucy_jobs_status_available").on(table.status, table.availableAt),
+  chatCreatedIdx: index("idx_lucy_jobs_chat_created").on(table.chatId, table.createdAt),
+}));
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+export type LucyJob = typeof lucyJobs.$inferSelect;
+export type InsertLucyJob = typeof lucyJobs.$inferInsert;

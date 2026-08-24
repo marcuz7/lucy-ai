@@ -1,0 +1,31 @@
+import { memoryStore } from "./memory";
+import { HeuristicSpeakClassifier } from "./classifier";
+import { BuiltInLucyEngine, routeMessage } from "./engine";
+import type { ChannelAdapter, InboundMessage, OutboundChunk } from "./types";
+
+const classifier = new HeuristicSpeakClassifier();
+const engine = new BuiltInLucyEngine();
+function chunksFor(text: string, conversationId: string): OutboundChunk[] {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  const pieces = normalized.match(/.{1,320}(?:\s|$)/g)?.map(piece => piece.trim()).filter(Boolean) ?? [normalized];
+  return pieces.map((piece, sequence) => ({ id: `${conversationId}:${Date.now()}:${sequence}`, conversationId, text: piece, sequence, delayMs: Math.min(1600, 280 + piece.length * 12) }));
+}
+
+export async function processInbound(message: InboundMessage, adapter: ChannelAdapter) {
+  if (await memoryStore.isOptedOut(message.senderId)) return;
+  await memoryStore.saveInbound(message);
+  const memory = await memoryStore.snapshot(message.chatId);
+  const decision = await classifier.decide(message, memory.working);
+  await memoryStore.saveDecision(message.id, decision);
+  if (!decision.shouldSpeak) return;
+
+  const response = await engine.respond({ message, memory, route: routeMessage(message.text) });
+  await memoryStore.appendTurn(message.chatId, { role: "assistant", text: response, timestamp: Date.now() });
+  for (const chunk of chunksFor(response, message.chatId)) {
+    // The delay is metadata for a channel adapter. A real adapter can send typing
+    // indicators, sleep, then dispatch. Stub mode sends immediately.
+    await adapter.sendText(message.senderId, chunk.text);
+  }
+}
+
+export { chunksFor };
