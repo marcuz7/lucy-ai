@@ -204,3 +204,5 @@
 - [ ] Add regression coverage or documented verification for wrong-account recovery plus successful canonical super-admin access.
 
 - [ ] Fix the canonical public/admin authentication entry point so it clearly supports existing-account login, not only signup, and verify account switching.
+
+- [ ] Diagnose why a successful Google OAuth return does not expose the admin or super-admin entry point on the canonical domain, then fix it without weakening identity checks.
