@@ -203,9 +203,9 @@
 - [ ] If the exact account is still denied, add a controlled server-side identity diagnostic for openId/email matching and fix any mismatch without weakening the boundary.
 - [ ] Add regression coverage or documented verification for wrong-account recovery plus successful canonical super-admin access.
 
-- [ ] Fix the canonical public/admin authentication entry point so it clearly supports existing-account login, not only signup, and verify account switching.
+- [x] Fix the canonical public/admin authentication entry point so it clearly supports existing-account login, not only signup, and verify account switching.
 
-- [ ] Diagnose why a successful Google OAuth return does not expose the admin or super-admin entry point on the canonical domain, then fix it without weakening identity checks.
+- [x] Diagnose why a successful Google OAuth return does not expose the admin or super-admin entry point on the canonical domain, then fix it without weakening identity checks.
 
 - [x] Rename the user-facing project title and metadata from Boba Landing Recreation to Lucy AI, then verify no visible legacy title remains.
 
