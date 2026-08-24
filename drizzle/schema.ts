@@ -34,6 +34,17 @@ export const lucyTelnyxCredentials = mysqlTable("lucy_telnyx_credentials", {
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
 
+export const lucyLlmCredentials = mysqlTable("lucy_llm_credentials", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerUserId: int("owner_user_id").notNull().unique(),
+  provider: varchar("provider", { length: 32 }).notNull().default("openai-compatible"),
+  apiKeyEncrypted: text("api_key_encrypted").notNull(),
+  baseUrl: varchar("base_url", { length: 512 }).notNull(),
+  model: varchar("model", { length: 128 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
 export const lucyConversationEvents = mysqlTable("lucy_conversation_events", {
   id: varchar("id", { length: 36 }).primaryKey(),
   chatId: varchar("chat_id", { length: 191 }).notNull(),
@@ -138,6 +149,8 @@ export type LucyTwilioCredentials = typeof lucyTwilioCredentials.$inferSelect;
 export type InsertLucyTwilioCredentials = typeof lucyTwilioCredentials.$inferInsert;
 export type LucyTelnyxCredentials = typeof lucyTelnyxCredentials.$inferSelect;
 export type InsertLucyTelnyxCredentials = typeof lucyTelnyxCredentials.$inferInsert;
+export type LucyLlmCredentials = typeof lucyLlmCredentials.$inferSelect;
+export type InsertLucyLlmCredentials = typeof lucyLlmCredentials.$inferInsert;
 export type LucyJob = typeof lucyJobs.$inferSelect;
 export type InsertLucyJob = typeof lucyJobs.$inferInsert;
 export type LucyAgentRun = typeof lucyAgentRuns.$inferSelect;

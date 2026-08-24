@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { getTelnyxCredentialStatus, getTwilioCredentialStatus, saveTelnyxCredentials, saveTwilioCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
+import { getLlmCredentialStatus, getTelnyxCredentialStatus, getTwilioCredentialStatus, saveLlmCredentials, saveTelnyxCredentials, saveTwilioCredentials, testLlmCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
 import { getAgentRuns, getDashboardSummary, getQueueJobs } from "./lucy/dashboard";
 import { requestAgentRunCancellation } from "./lucy/agentPersistence";
 import { getMessageDetail } from "./lucy/history";
@@ -40,6 +40,20 @@ export const appRouter = router({
       allowedSenders: z.array(z.string().regex(/^\\+[1-9]\\d{7,14}$/, "Use E.164 format, for example +15551234567")).min(1, "Add at least one allowlisted sender"),
     })).mutation(async ({ ctx, input }) => {
       await saveTelnyxCredentials(ctx.user.id, input);
+      return { success: true } as const;
+    }),
+  }),
+
+  llm: router({
+    status: adminProcedure.query(({ ctx }) => getLlmCredentialStatus(ctx.user.id)),
+    test: adminProcedure.mutation(({ ctx }) => testLlmCredentials(ctx.user.id)),
+    save: adminProcedure.input(z.object({
+      provider: z.string().min(1).max(32),
+      apiKey: z.string().min(8).max(512),
+      baseUrl: z.string().url().max(512),
+      model: z.string().min(1).max(128),
+    })).mutation(async ({ ctx, input }) => {
+      await saveLlmCredentials(ctx.user.id, input);
       return { success: true } as const;
     }),
   }),

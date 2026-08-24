@@ -11,6 +11,20 @@ function context(role: "admin" | "user"): TrpcContext {
   };
 }
 
+describe("admin BYO LLM access", () => {
+  it("rejects regular users from reading, saving, or testing BYO LLM", async () => {
+    const caller = appRouter.createCaller(context("user"));
+    await expect(caller.llm.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.llm.save({ provider: "openai-compatible", apiKey: "secret-key-123", baseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.llm.test()).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("allows an admin to read masked BYO LLM status", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.llm.status()).resolves.toMatchObject({ configured: false, apiKeyConfigured: false });
+  });
+});
+
 describe("admin Telnyx access", () => {
   it("rejects a regular user", async () => {
     const caller = appRouter.createCaller(context("user"));

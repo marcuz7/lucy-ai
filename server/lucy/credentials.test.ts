@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decryptSecret, encryptSecret, maskAccountSid, maskPhoneNumber, normalizeAllowedSenders } from "./credentials";
+import { decryptSecret, encryptSecret, maskAccountSid, maskPhoneNumber, normalizeAllowedSenders, summarizeLlmCredential } from "./credentials";
 
 describe("Lucy Twilio credentials", () => {
   it("encrypts and decrypts a token without storing the plaintext", () => {
@@ -16,5 +16,12 @@ describe("Lucy Twilio credentials", () => {
 
   it("normalizes only unique E.164 sender numbers", () => {
     expect(normalizeAllowedSenders(["+15550000000, +15550000000", "bad", "+15550000001"])).toEqual(["+15550000000", "+15550000001"]);
+  });
+
+  it("returns masked BYO LLM metadata without exposing the API key", () => {
+    const status = summarizeLlmCredential({ provider: "openai-compatible", baseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini", updatedAt: new Date() });
+    expect(status).toMatchObject({ configured: true, provider: "openai-compatible", model: "gpt-4o-mini", apiKeyConfigured: true });
+    expect(status).not.toHaveProperty("apiKey");
+    expect(JSON.stringify(status)).not.toContain("sk-private");
   });
 });

@@ -161,3 +161,7 @@
 - [x] Consolidate Twilio and Telnyx credentials into one admin provider setup page with clear channel sections.
 - [x] Ensure the unified provider setup page is protected by admin authentication and add password/access-control regression coverage.
 - [x] Verify the unified setup page responsively, run tests and build, then save a checkpoint.
+
+- [x] Add encrypted BYO LLM API-key configuration to the unified protected admin settings page, with provider/base-URL/model controls and masked status.
+- [x] Route the managed agent through the configured BYO LLM provider when enabled, while preserving the built-in LLM fallback and safe tool behavior.
+- [x] Add authorization, redaction, fallback, and provider-selection regression coverage; verify the UI and save a checkpoint.

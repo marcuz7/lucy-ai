@@ -20,6 +20,28 @@ function StatusNote({ configured, children }: { configured?: boolean; children: 
   return <div className="configured-note"><CheckCircle2 size={18} /><span>{children}</span></div>;
 }
 
+function LlmSection() {
+  const status = trpc.llm.status.useQuery();
+  const save = trpc.llm.save.useMutation({ onSuccess: () => status.refetch() });
+  const test = trpc.llm.test.useMutation();
+  const [provider, setProvider] = useState("openai-compatible");
+  const [apiKey, setApiKey] = useState("");
+  const [baseUrl, setBaseUrl] = useState("https://api.openai.com/v1");
+  const [model, setModel] = useState("gpt-4o-mini");
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    save.mutate({ provider, apiKey, baseUrl, model });
+  };
+
+  return <section className="provider-section">
+    <div className="provider-heading"><div><span className="eyebrow">BRAIN · BYO</span><h2>Your LLM API</h2><p>Bring an OpenAI-compatible key so Lucy can use your provider and model.</p></div><span className="provider-badge">LLM</span></div>
+    <StatusNote configured={status.data?.configured}>Using <strong>{status.data?.model}</strong> via {status.data?.provider} · key encrypted</StatusNote>
+    <form onSubmit={submit} className="provider-form"><label>Provider<input value={provider} onChange={event => setProvider(event.target.value)} placeholder="openai-compatible" required /></label><label>API key<input type="password" value={apiKey} onChange={event => setApiKey(event.target.value)} placeholder={status.data?.configured ? "Enter a new key to rotate it" : "Your provider API key"} required /></label><label>Base URL<input type="url" value={baseUrl} onChange={event => setBaseUrl(event.target.value)} placeholder="https://api.openai.com/v1" required /><small className="field-help">Use an OpenAI-compatible chat-completions base URL, such as OpenAI, OpenRouter, or another compatible provider.</small></label><label>Model<input value={model} onChange={event => setModel(event.target.value)} placeholder="gpt-4o-mini" required /></label><button className="pill-button settings-button" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save LLM settings"}</button>{save.isSuccess && <p className="form-success"><ShieldCheck size={17} /> BYO LLM settings saved securely.</p>}{save.error && <p className="form-error">Could not save LLM settings. Check the URL, model, and key.</p>}</form>
+    <div className="test-row"><button className="secondary-button" disabled={test.isPending || !status.data?.configured} onClick={() => test.mutate()}>{test.isPending ? "Testing…" : "Test LLM connection"}</button>{test.data && <span className={test.data.ok ? "test-ok" : "test-bad"}>{test.data.message}</span>}{test.error && <span className="test-bad">Connection test failed.</span>}</div>
+    <div className="setup-note"><strong>Safe default</strong><span>Lucy keeps the same read-only tool allowlist, step limits, cost limits, cancellation, and redacted audit logging when using your model. If no BYO key is saved, the built-in Lucy LLM remains the fallback.</span></div>
+  </section>;
+}
+
 function TwilioSection() {
   const status = trpc.twilio.status.useQuery();
   const save = trpc.twilio.save.useMutation({ onSuccess: () => status.refetch() });
@@ -65,5 +87,5 @@ function TelnyxSection() {
 }
 
 export default function AdminProviderSettings() {
-  return <ProtectedState><main className="settings-shell"><div className="settings-card wide provider-settings-card"><Link href="/admin" className="back-link"><ArrowLeft size={16} /> Back to dashboard</Link><div className="settings-title"><div className="settings-icon"><LockKeyhole /></div><div><span className="eyebrow">PROTECTED ADMIN SETTINGS</span><h1>Messaging channels</h1></div></div><p className="settings-intro">Set up every Lucy messaging secret from one page. Credentials are encrypted before storage, masked in status responses, and never returned to the browser. Only accounts with the admin role can view or change these settings.</p><div className="security-banner"><ShieldCheck size={18} /><div><strong>Admin-only and encrypted</strong><span>Use your Lucy administrator account. Never paste these credentials into chat or public code.</span></div></div><TwilioSection /><TelnyxSection /></div></main></ProtectedState>;
+  return <ProtectedState><main className="settings-shell"><div className="settings-card wide provider-settings-card"><Link href="/admin" className="back-link"><ArrowLeft size={16} /> Back to dashboard</Link><div className="settings-title"><div className="settings-icon"><LockKeyhole /></div><div><span className="eyebrow">PROTECTED ADMIN SETTINGS</span><h1>Messaging channels</h1></div></div><p className="settings-intro">Set up every Lucy messaging secret from one page. Credentials are encrypted before storage, masked in status responses, and never returned to the browser. Only accounts with the admin role can view or change these settings.</p><div className="security-banner"><ShieldCheck size={18} /><div><strong>Admin-only and encrypted</strong><span>Use your Lucy administrator account. Never paste these credentials into chat or public code.</span></div></div><LlmSection /><TwilioSection /><TelnyxSection /></div></main></ProtectedState>;
 }

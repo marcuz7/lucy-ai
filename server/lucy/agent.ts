@@ -1,5 +1,5 @@
 import type { Message, ToolCall } from "../_core/llm";
-import { invokeLLM } from "../_core/llm";
+import { invokeLucyLlm, hasConfiguredLucyLlm } from "./llmRouter";
 import { createAgentRun, createAgentToolCall, isAgentRunCancellationRequested, updateAgentRun, updateAgentToolCall } from "./agentPersistence";
 import { executeSafeAgentTool, SAFE_AGENT_TOOLS } from "./agentTools";
 import type { AgentExecutionProvider, AgentProgressEvent, AgentRunInput, AgentRunResult } from "./types";
@@ -101,7 +101,7 @@ export async function runManagedAgent(input: AgentRunInput): Promise<AgentRunRes
   try {
     await updateAgentRun(run.id, { status: "planning", startedAt: new Date() });
     await throwIfCancelled();
-    if (!process.env.BUILT_IN_FORGE_API_KEY) {
+    if (!(await hasConfiguredLucyLlm())) {
       const text = `I’m ready to execute safe, read-only tasks. I received: “${input.message.text.slice(0, 120)}”`;
       await updateAgentRun(run.id, { status: "completed", resultText: text, completedAt: new Date() });
       return { runId: run.id, status: "completed", text };
@@ -118,7 +118,7 @@ export async function runManagedAgent(input: AgentRunInput): Promise<AgentRunRes
       await throwIfCancelled();
       if (Date.now() >= deadline) throw new Error("Agent deadline reached");
       await updateAgentRun(run.id, { status: step === 0 ? "planning" : "running", currentStep: step + 1, toolCallsUsed, costUnitsUsed });
-      const response = await invokeLLM({ messages, tools: SAFE_AGENT_TOOLS, toolChoice: "auto", maxTokens: 700 });
+      const response = await invokeLucyLlm({ messages, tools: SAFE_AGENT_TOOLS, toolChoice: "auto", maxTokens: 700 });
       await throwIfCancelled();
       const assistant = response.choices?.[0]?.message;
       if (!assistant) throw new Error("Agent returned no message");
