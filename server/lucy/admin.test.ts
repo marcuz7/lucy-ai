@@ -37,6 +37,11 @@ describe("admin Tavily search access", () => {
     const caller = appRouter.createCaller(context("admin"));
     await expect(caller.search.status()).resolves.toMatchObject({ configured: false });
   });
+
+  it("rejects an invalid short Tavily key before persistence", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.search.save({ apiKey: "short" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
 });
 
 describe("admin Telnyx access", () => {
