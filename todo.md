@@ -171,3 +171,9 @@
 
 - [x] Add a Groq preset so admins can paste a single gsk_ API key while endpoint and default model are supplied automatically.
 - [x] Validate Groq key format and add regression coverage for Groq defaults and actionable connection failures.
+
+- [x] Create a LucyAi build-route map from the attached requirements, including completed foundations, setup dependencies, production launch, and future phases.
+
+- [x] Add encrypted Tavily API-key setup to the protected unified admin settings page with masked status and connection testing.
+- [x] Route the existing `search_web` tool through Tavily when configured while preserving the built-in search fallback, budgets, and redaction.
+- [ ] Add Tavily validation/provider-selection tests, verify the settings UI and build, and save a checkpoint.

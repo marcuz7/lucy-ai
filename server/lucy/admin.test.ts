@@ -25,6 +25,20 @@ describe("admin BYO LLM access", () => {
   });
 });
 
+describe("admin Tavily search access", () => {
+  it("rejects regular users from reading, saving, or testing Tavily", async () => {
+    const caller = appRouter.createCaller(context("user"));
+    await expect(caller.search.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.search.save({ apiKey: "tavily-key-123" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.search.test()).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("allows an admin to read masked Tavily status", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.search.status()).resolves.toMatchObject({ configured: false });
+  });
+});
+
 describe("admin Telnyx access", () => {
   it("rejects a regular user", async () => {
     const caller = appRouter.createCaller(context("user"));

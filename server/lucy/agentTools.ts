@@ -1,6 +1,7 @@
 import dns from "node:dns/promises";
 import net from "node:net";
 import type { Tool } from "../_core/llm";
+import { getTavilyApiKeyForAgent } from "./credentials";
 
 const MAX_OUTPUT = 12_000;
 const MAX_SEARCH_RESULTS = 5;
@@ -152,6 +153,28 @@ async function publicWebLookup(args: Record<string, unknown>) {
   const query = typeof args.query === "string" ? args.query.trim().slice(0, 240) : "";
   if (!query) throw new Error("A search query is required");
   const limit = Math.max(1, Math.min(MAX_SEARCH_RESULTS, Number(args.limit ?? 3) || 3));
+  const tavilyKey = await getTavilyApiKeyForAgent();
+  if (tavilyKey) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      const response = await fetch("https://api.tavily.com/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ api_key: tavilyKey, query, max_results: limit, search_depth: "basic" }),
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`Tavily search returned ${response.status}`);
+      const payload = await response.json() as { results?: Array<{ title?: string; url?: string; content?: string }> };
+      const results = (payload.results ?? []).slice(0, limit).map(result => ({ title: result.title ?? "Untitled", url: result.url ?? "", snippet: result.content ?? "" }));
+      return JSON.stringify({ query, provider: "tavily", results });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") throw new Error("Tavily search timed out");
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
   const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
   const { body } = await fetchPublic(searchUrl, "text/html");
   const results: Array<{ title: string; url: string; snippet: string }> = [];

@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "../db";
-import { lucyLlmCredentials, lucyTelnyxCredentials, lucyTwilioCredentials } from "../../drizzle/schema";
+import { lucyLlmCredentials, lucySearchCredentials, lucyTelnyxCredentials, lucyTwilioCredentials } from "../../drizzle/schema";
 import { resolveLlmSettings } from "../../shared/llm";
 
 const algorithm = "aes-256-gcm";
@@ -152,6 +152,46 @@ export async function getLlmCredentialsForAgent() {
   if (!row) return null;
   const apiKey = decryptSecret(row.apiKeyEncrypted);
   return resolveLlmSettings({ provider: row.provider, apiKey, baseUrl: row.baseUrl, model: row.model });
+}
+
+export async function saveTavilyCredentials(ownerUserId: number, apiKey: string) {
+  const normalized = apiKey.trim();
+  if (normalized.length < 8 || normalized.length > 512) throw new Error("Tavily API key is required");
+  const db = await getDb();
+  if (!db) throw new Error("Database is not configured");
+  await db.insert(lucySearchCredentials).values({ ownerUserId, provider: "tavily", apiKeyEncrypted: encryptSecret(normalized) }).onDuplicateKeyUpdate({
+    set: { provider: "tavily", apiKeyEncrypted: encryptSecret(normalized), updatedAt: new Date() },
+  });
+}
+
+export async function getTavilyCredentialStatus(ownerUserId: number) {
+  const db = await getDb();
+  if (!db) return { configured: false, provider: null, updatedAt: null };
+  const rows = await db.select({ provider: lucySearchCredentials.provider, updatedAt: lucySearchCredentials.updatedAt }).from(lucySearchCredentials).where(eq(lucySearchCredentials.ownerUserId, ownerUserId)).limit(1);
+  const row = rows[0];
+  return row ? { configured: true, provider: row.provider, updatedAt: row.updatedAt } : { configured: false, provider: null, updatedAt: null };
+}
+
+export async function testTavilyCredentials(ownerUserId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not configured");
+  const rows = await db.select().from(lucySearchCredentials).where(eq(lucySearchCredentials.ownerUserId, ownerUserId)).limit(1);
+  const row = rows[0];
+  if (!row) return { ok: false, message: "No Tavily credentials are saved yet." };
+  const response = await fetch("https://api.tavily.com/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ api_key: decryptSecret(row.apiKeyEncrypted), query: "LucyAi connection test", max_results: 1 }),
+  });
+  return response.ok ? { ok: true, message: "Tavily search is reachable." } : { ok: false, message: "Tavily rejected this API key. Check the key and try again." };
+}
+
+export async function getTavilyApiKeyForAgent() {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(lucySearchCredentials).orderBy(desc(lucySearchCredentials.updatedAt)).limit(1);
+  const row = rows[0];
+  return row ? decryptSecret(row.apiKeyEncrypted) : null;
 }
 
 export async function getTwilioCredentialStatus(ownerUserId: number) {
