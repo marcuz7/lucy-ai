@@ -55,3 +55,7 @@
 
 /* Temporary text-only brand treatment until the final logo asset is supplied. */
 .brand{display:flex;align-items:center;min-width:120px;color:var(--plum);text-decoration:none}.brand .wordmark{display:block;font-family:'Plus Jakarta Sans',sans-serif;font-size:25px;font-weight:800;letter-spacing:-.095em;line-height:1;color:var(--plum)}.brand .wordmark span{display:inline;color:var(--mustard);font-size:.92em;letter-spacing:-.06em}.brand:hover .wordmark{color:#3a2050}.brand:hover .wordmark span{color:var(--mustard)}footer .brand .wordmark{font-size:21px}@media(max-width:800px){.brand{min-width:95px}.brand .wordmark{font-size:21px}footer .brand .wordmark{font-size:19px}}
+
+
+/* Provided mark: intentionally compact beside the text wordmark, never used as a large logo canvas. */
+.brand{gap:8px;min-width:auto}.brand-mark{display:block;width:30px!important;height:34px!important;object-fit:contain!important;object-position:center;mix-blend-mode:multiply}.brand .wordmark{font-size:25px!important;letter-spacing:-.095em}.brand .wordmark span{display:inline!important;color:var(--mustard)}footer .brand-mark{width:26px!important;height:30px!important}footer .brand .wordmark{font-size:21px!important}@media(max-width:800px){.brand-mark{width:25px!important;height:29px!important}.brand .wordmark{font-size:21px!important}footer .brand-mark{width:23px!important;height:27px!important}footer .brand .wordmark{font-size:19px!important}}

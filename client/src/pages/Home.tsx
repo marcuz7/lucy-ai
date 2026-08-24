@@ -34,7 +34,7 @@ const faqs = [
 ];
 
 function Logo() {
-  return <a href="#top" className="brand" aria-label="Lucy.ai home"><span className="wordmark">Lucy<span aria-hidden="true">.</span>ai</span></a>;
+  return <a href="#top" className="brand" aria-label="Lucy.ai home"><img className="brand-mark" src="/manus-storage/lucyai-head-lightbulb_ceeb63b0.png" alt="" /><span className="wordmark">Lucy<span aria-hidden="true">.</span>ai</span></a>;
 }
 
 function Header({ onText }: { onText: () => void }) {

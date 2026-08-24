@@ -109,3 +109,8 @@
 - [x] Verify the wordmark at desktop and mobile widths and confirm launch/admin routes remain intact.
 - [x] Run tests, type checking, and production build, then save the text-wordmark checkpoint.
 - [x] Re-verify `/admin` and `/admin/twilio` after the text-only Lucy.ai wordmark change; both protected routes resolve successfully.
+
+- [x] Prepare the supplied head-and-lightbulb mark as a durable web asset without changing its design.
+- [x] Pair the logo mark with the text-only Lucy.ai wordmark in the public header and footer.
+- [x] Verify the logo lockup at desktop and mobile widths and preserve launch/admin routes and interactions.
+- [x] Run tests, type checking, and production build, then save the logo integration checkpoint.

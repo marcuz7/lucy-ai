@@ -31,3 +31,13 @@ The image-based logo has been removed from the public header and footer. The new
 ## Post-wordmark route verification
 
 After the text-only wordmark change, `/admin` briefly displayed its normal authentication loading state and then resolved successfully to the authenticated Message dashboard. The dashboard still shows the Twilio settings link, filters, queue metrics, and the existing legacy pending job. This confirms the public branding change did not interrupt protected route resolution.
+
+
+## Provided logo integration verification
+
+The supplied head-and-lightbulb mark is now used as a compact image mark beside the Lucy.ai wordmark. It is rendered at a controlled size with a multiply blend treatment so the source’s light background does not appear as a pasted rectangle. Desktop and mobile screenshots confirm the mark is visually subordinate to the wordmark, aligned with the header baseline, and does not crowd the navigation or launch controls.
+
+
+## Final logo integration verification
+
+The final public header now combines the supplied head-and-lightbulb mark with the Lucy.ai wordmark at a controlled small size, and the browser favicon points to the same supplied PNG. The public landing page screenshot remains balanced at desktop width, while the protected Message dashboard and Twilio settings route continue to render from the same project after the branding update.
