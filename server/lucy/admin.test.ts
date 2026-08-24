@@ -27,4 +27,14 @@ describe("admin Twilio access", () => {
     const caller = appRouter.createCaller(context("user"));
     await expect(caller.dashboard.summary()).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
+
+  it("allows an admin to query message detail and returns null for an unknown message", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.dashboard.messageDetail({ messageId: "missing-message" })).resolves.toBeNull();
+  });
+
+  it("rejects regular users from message detail", async () => {
+    const caller = appRouter.createCaller(context("user"));
+    await expect(caller.dashboard.messageDetail({ messageId: "missing-message" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
 });

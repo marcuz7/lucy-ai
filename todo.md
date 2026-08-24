@@ -38,3 +38,10 @@
 - [x] Save the admin dashboard checkpoint and deliver it.
 
 - [x] Fix the deployed landing page brand regression so all visible Boba copy renders as Lucy.
+
+- [x] Add a protected message-detail query with full conversation history and related queue activity.
+- [x] Add dashboard drill-down links from each incoming message to its detail view.
+- [x] Build responsive message detail and conversation timeline states.
+- [ ] Verify detail authorization, loading/empty/error states, and mobile/desktop layouts (authenticated browser states require a real admin session and live message data).
+- [x] Save the message-detail checkpoint and deliver it.
+- [x] Add authorization coverage for the message-detail procedure.

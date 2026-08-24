@@ -1,4 +1,5 @@
 import { memoryStore } from "./memory";
+import { recordConversationEvent } from "./history";
 import { HeuristicSpeakClassifier } from "./classifier";
 import { BuiltInLucyEngine, routeMessage } from "./engine";
 import type { ChannelAdapter, InboundMessage, OutboundChunk } from "./types";
@@ -14,6 +15,7 @@ function chunksFor(text: string, conversationId: string): OutboundChunk[] {
 export async function processInbound(message: InboundMessage, adapter: ChannelAdapter) {
   if (await memoryStore.isOptedOut(message.senderId)) return;
   await memoryStore.saveInbound(message);
+  await recordConversationEvent({ chatId: message.chatId, messageId: message.id, role: "user", text: message.text });
   const memory = await memoryStore.snapshot(message.chatId);
   const decision = await classifier.decide(message, memory.working);
   await memoryStore.saveDecision(message.id, decision);
@@ -21,6 +23,7 @@ export async function processInbound(message: InboundMessage, adapter: ChannelAd
 
   const response = await engine.respond({ message, memory, route: routeMessage(message.text) });
   await memoryStore.appendTurn(message.chatId, { role: "assistant", text: response, timestamp: Date.now() });
+  await recordConversationEvent({ chatId: message.chatId, role: "assistant", text: response });
   for (const chunk of chunksFor(response, message.chatId)) {
     // The delay is metadata for a channel adapter. A real adapter can send typing
     // indicators, sleep, then dispatch. Stub mode sends immediately.

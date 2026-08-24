@@ -22,6 +22,15 @@ export const lucyTwilioCredentials = mysqlTable("lucy_twilio_credentials", {
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
 
+export const lucyConversationEvents = mysqlTable("lucy_conversation_events", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  chatId: varchar("chat_id", { length: 191 }).notNull(),
+  messageId: varchar("message_id", { length: 191 }),
+  role: mysqlEnum("role", ["user", "assistant", "system"]).notNull(),
+  text: text("text").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const lucyMessages = mysqlTable("lucy_messages", {
   id: varchar("id", { length: 191 }).primaryKey(),
   channel: varchar("channel", { length: 32 }).notNull(),
@@ -51,6 +60,8 @@ export const lucyJobs = mysqlTable("lucy_jobs", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+export type LucyConversationEvent = typeof lucyConversationEvents.$inferSelect;
+export type InsertLucyConversationEvent = typeof lucyConversationEvents.$inferInsert;
 export type LucyMessage = typeof lucyMessages.$inferSelect;
 export type InsertLucyMessage = typeof lucyMessages.$inferInsert;
 export type LucyTwilioCredentials = typeof lucyTwilioCredentials.$inferSelect;

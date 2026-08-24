@@ -1,0 +1,24 @@
+import { ArrowLeft, Clock3, MessageSquare, ShieldAlert } from "lucide-react";
+import { Link, useRoute } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { startLogin } from "@/const";
+import { trpc } from "@/lib/trpc";
+
+const formatTime = (value: Date | string | null) => value ? new Date(value).toLocaleString([], { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }) : "—";
+
+export default function AdminMessageDetail() {
+  const { user, loading } = useAuth();
+  const [, params] = useRoute("/admin/messages/:messageId");
+  const messageId = params?.messageId ? decodeURIComponent(params.messageId) : "";
+  const detail = trpc.dashboard.messageDetail.useQuery({ messageId }, { enabled: user?.role === "admin" && Boolean(messageId) });
+
+  if (loading) return <main className="dashboard-shell"><p>Loading Lucy message…</p></main>;
+  if (!user) return <main className="settings-shell"><div className="settings-card"><span className="eyebrow">LUCY ADMIN</span><h1>Sign up to inspect messages.</h1><p>Sign in to view conversation history and worker details.</p><button className="pill-button settings-button" onClick={() => startLogin()}>Sign up / Log in</button><Link href="/" className="back-link">Back to Lucy</Link></div></main>;
+  if (user.role !== "admin") return <main className="settings-shell"><div className="settings-card"><ShieldAlert className="access-icon" /><span className="eyebrow">ACCESS LIMITED</span><h1>Admin access required.</h1><p>Your account cannot view message content or conversation history.</p><Link href="/" className="back-link">Back to Lucy</Link></div></main>;
+  if (detail.isLoading) return <main className="dashboard-shell"><div className="dashboard-wrap"><Link href="/admin" className="back-link">← Back to dashboard</Link><p className="empty-state">Loading conversation…</p></div></main>;
+  if (detail.isError) return <main className="dashboard-shell"><div className="dashboard-wrap"><Link href="/admin" className="back-link">← Back to dashboard</Link><div className="dashboard-error"><ShieldAlert size={18} /><div><strong>Couldn’t load this message.</strong><span>Try again or return to the dashboard.</span></div><button className="secondary-button" onClick={() => detail.refetch()}>Retry</button></div></div></main>;
+  if (!detail.data) return <main className="dashboard-shell"><div className="dashboard-wrap"><Link href="/admin" className="back-link">← Back to dashboard</Link><div className="settings-card"><span className="eyebrow">NOT FOUND</span><h1>Message not found.</h1><p>This message may have been removed or is no longer available.</p></div></div></main>;
+
+  const { message, events, jobs } = detail.data;
+  return <main className="dashboard-shell"><div className="dashboard-wrap detail-wrap"><Link href="/admin" className="back-link">← Back to dashboard</Link><div className="detail-header"><div><span className="eyebrow">CONVERSATION DETAIL</span><h1>Message history</h1><p>{message.channel} · {message.chatId} · received {formatTime(message.receivedAt)}</p></div><div className="detail-chip"><MessageSquare size={16} /> {events.length} events</div></div><div className="detail-grid"><section className="dashboard-panel conversation-panel"><div className="panel-heading"><div><span className="eyebrow">FULL THREAD</span><h2>Conversation timeline</h2></div></div>{events.length ? <div className="timeline">{events.map(event => <div className={`timeline-event ${event.role}`} key={event.id}><div className="timeline-meta"><span>{event.role === "assistant" ? "Lucy" : event.role === "user" ? "Sender" : "System"}</span><time>{formatTime(event.createdAt)}</time></div><p>{event.text}</p></div>)}</div> : <p className="empty-state">No conversation events have been recorded yet.</p>}</section><aside className="detail-side"><section className="dashboard-panel detail-card"><div className="panel-heading"><div><span className="eyebrow">SELECTED MESSAGE</span><h2>Inbound event</h2></div></div><dl><dt>Message ID</dt><dd>{message.id}</dd><dt>Sender</dt><dd>{message.senderId}</dd><dt>Channel</dt><dd>{message.channel}</dd><dt>Attachments</dt><dd>{message.mediaCount}</dd></dl></section><section className="dashboard-panel detail-card"><div className="panel-heading"><div><span className="eyebrow">QUEUE ACTIVITY</span><h2>Worker attempts</h2></div><Clock3 /></div>{jobs.length ? <div className="detail-jobs">{jobs.map(job => <div className="detail-job" key={job.id}><span className={`status-dot ${job.status}`} /><div><strong>{job.status.replace("_", " ")}</strong><small>Attempt {job.attempts} · {formatTime(job.completedAt ?? job.createdAt)}</small>{job.lastError && <small className="error-copy">{job.lastError}</small>}</div></div>)}</div> : <p className="empty-state">No queue job is linked to this message.</p>}</section></aside></div></div></main>;
+}
