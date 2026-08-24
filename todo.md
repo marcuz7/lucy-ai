@@ -188,3 +188,11 @@
 - [x] Configure and validate the production `LUCY_CREDENTIALS_ENCRYPTION_KEY` secret, add rotation/migration regression coverage, and save a checkpoint.
 
 - [x] Reissue a usable dedicated encryption-key request card after the previous card was unavailable, then validate the submitted value.
+
+- [ ] Guide live Twilio signup, protected credential entry, webhook configuration, and one verified inbound-to-outbound SMS test without handling or logging plaintext secrets.
+
+- [ ] Diagnose and restore super-admin login while preserving owner-only credential access and ordinary-admin monitoring access.
+
+- [x] Diagnose and fix the current inability to sign in to `/admin/settings` on the canonical LucyAi domain without weakening super-admin authorization.
+
+- [x] Restrict super-admin secret management to the single configured email `marcuz7@gmail.com` and verify another authenticated admin is denied.

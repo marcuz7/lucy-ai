@@ -45,11 +45,22 @@ export const adminProcedure = t.procedure.use(
   }),
 );
 
-export const superAdminProcedure = t.procedure.use(
+export const isSuperAdminUser = (
+  user: TrpcContext["user"],
+): user is NonNullable<TrpcContext["user"]> => Boolean(
+  user
+  && user.role === "admin"
+  && ENV.ownerOpenId
+  && user.openId === ENV.ownerOpenId
+  && ENV.superAdminEmail
+  && user.email?.trim().toLowerCase() === ENV.superAdminEmail,
+);
+
+export const superAdminProcedure = protectedProcedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
 
-    if (!ctx.user || ctx.user.role !== "admin" || !ENV.ownerOpenId || ctx.user.openId !== ENV.ownerOpenId) {
+    if (!isSuperAdminUser(ctx.user)) {
       throw new TRPCError({ code: "FORBIDDEN", message: "Only the Lucy super-admin can manage provider secrets." });
     }
 
