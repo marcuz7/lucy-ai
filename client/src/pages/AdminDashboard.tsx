@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   const filteredRuns = useMemo(() => (agentRuns.data ?? []).filter(run => runStatus === "all" || run.status === runStatus), [agentRuns.data, runStatus]);
 
   if (loading) return <main className="dashboard-shell"><p>Loading Lucy dashboard…</p></main>;
-  if (!user) return <main className="settings-shell"><div className="settings-card"><span className="eyebrow">LUCY ADMIN</span><h1>Sign up to view the dashboard.</h1><p>Sign in to see Lucy’s incoming messages and queue health.</p><button className="pill-button settings-button" onClick={() => startLogin()}>Sign up / Log in</button><Link href="/" className="back-link">Back to Lucy</Link></div></main>;
+  if (!user) return <main className="settings-shell"><div className="settings-card"><span className="eyebrow">LUCY ADMIN</span><h1>Log in to view the dashboard.</h1><p>Sign in to see Lucy’s incoming messages and queue health.</p><button className="pill-button settings-button" onClick={() => startLogin()}>Sign up / Log in</button><Link href="/" className="back-link">Back to Lucy</Link></div></main>;
   if (user.role !== "admin") return <main className="settings-shell"><div className="settings-card"><ShieldAlert className="access-icon" /><span className="eyebrow">ACCESS LIMITED</span><h1>Admin access required.</h1><p>Your account does not have permission to view Lucy’s operational data.</p><Link href="/" className="back-link">Back to Lucy</Link></div></main>;
 
   const queue = summary.data?.queue ?? { pending: 0, processing: 0, completed: 0, deadLetter: 0 };

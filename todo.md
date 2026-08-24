@@ -191,10 +191,16 @@
 
 - [ ] Guide live Twilio signup, protected credential entry, webhook configuration, and one verified inbound-to-outbound SMS test without handling or logging plaintext secrets.
 
-- [ ] Diagnose and restore super-admin login while preserving owner-only credential access and ordinary-admin monitoring access.
+- [x] Diagnose and restore super-admin login while preserving owner-only credential access and ordinary-admin monitoring access.
 
 - [x] Diagnose and fix the current inability to sign in to `/admin/settings` on the canonical LucyAi domain without weakening super-admin authorization.
 
 - [x] Restrict super-admin secret management to the single configured email `marcuz7@gmail.com` and verify another authenticated admin is denied.
 
 - [x] Diagnose and restore the repeated super-admin login failure on the canonical LucyAi domain while preserving exact-email authorization.
+
+- [ ] Verify the canonical-domain super-admin flow end to end with the exact `marcuz7@gmail.com` account and confirm `/admin/settings` loads provider sections.
+- [ ] If the exact account is still denied, add a controlled server-side identity diagnostic for openId/email matching and fix any mismatch without weakening the boundary.
+- [ ] Add regression coverage or documented verification for wrong-account recovery plus successful canonical super-admin access.
+
+- [ ] Fix the canonical public/admin authentication entry point so it clearly supports existing-account login, not only signup, and verify account switching.

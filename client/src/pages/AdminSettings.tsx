@@ -16,7 +16,7 @@ export default function AdminSettings() {
   const [allowedSenders, setAllowedSenders] = useState("");
 
   if (loading) return <main className="settings-shell"><p>Loading Lucy settings…</p></main>;
-  if (!user) return <main className="settings-shell"><div className="settings-card"><span className="eyebrow">LUCY ADMIN</span><h1>Sign up to connect Lucy.</h1><p>Use your account to manage the messaging channel that powers Lucy.</p><button className="pill-button settings-button" onClick={() => startLogin()}>Sign up / Log in <ArrowLeft size={18} /></button><Link href="/" className="back-link">Back to Lucy</Link></div></main>;
+  if (!user) return <main className="settings-shell"><div className="settings-card"><span className="eyebrow">LUCY ADMIN</span><h1>Log in to connect Lucy.</h1><p>Use your account to manage the messaging channel that powers Lucy.</p><button className="pill-button settings-button" onClick={() => startLogin()}>Sign up / Log in <ArrowLeft size={18} /></button><Link href="/" className="back-link">Back to Lucy</Link></div></main>;
   if (user.role !== "admin") return <main className="settings-shell"><div className="settings-card"><span className="eyebrow">ACCESS LIMITED</span><h1>This area is for admins.</h1><p>Your account is signed in, but it does not have permission to manage Lucy’s messaging credentials.</p><Link href="/" className="back-link">Back to Lucy</Link></div></main>;
 
   const senderValues = allowedSenders.split(/[\s,]+/).map(value => value.trim()).filter(Boolean);
