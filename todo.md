@@ -96,3 +96,10 @@
 - [x] Inspect server, browser, and network OAuth evidence; confirm the production users-table issue and successful authenticated admin access after repair.
 - [x] Add OAuth state round-trip, nonce, malformed-state, and legacy redirect regression coverage.
 - [x] Run the final Vitest suite, TypeScript check, and production build.
+
+- [x] Benchmark getboba.ai’s visual hierarchy, spacing, responsive behavior, and interaction polish against the current LucyAi landing page without copying proprietary wording or identity.
+- [x] Refine LucyAi’s public landing page typography, spacing, section rhythm, card treatments, navigation, and motion for a more considered editorial finish.
+- [x] Preserve LucyAi’s original copy, full LUCY.ai lockup, provisioned number, launch interactions, QR/SMS behavior, and admin routes during the visual refinement.
+- [x] Verify the refined landing page at desktop and mobile widths, including launch interactions and route health.
+- [x] Run tests, type checking, and production build, then save and deliver the refined checkpoint.
+- [x] Re-test refined launch interactions in Chromium: modal open/close, provisioned SMS href, QR code presence, and copy feedback.
