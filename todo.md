@@ -206,3 +206,5 @@
 - [ ] Fix the canonical public/admin authentication entry point so it clearly supports existing-account login, not only signup, and verify account switching.
 
 - [ ] Diagnose why a successful Google OAuth return does not expose the admin or super-admin entry point on the canonical domain, then fix it without weakening identity checks.
+
+- [x] Rename the user-facing project title and metadata from Boba Landing Recreation to Lucy AI, then verify no visible legacy title remains.
