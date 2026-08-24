@@ -311,6 +311,27 @@ class SDKServer {
       throw ForbiddenError("User not found");
     }
 
+    // Refresh identity fields on every authenticated request so a Google account
+    // switch cannot leave the client displaying stale email/name/role data.
+    // The configured owner identity is always an admin; existing non-owner admin
+    // assignments are preserved for operational dashboard access.
+    try {
+      const userInfo = await this.getUserInfoWithJwt(sessionToken ?? "");
+      const refreshedRole = user.role === "admin" || userInfo.openId === ENV.ownerOpenId ? "admin" : "user";
+      await db.upsertUser({
+        openId: userInfo.openId,
+        name: userInfo.name || null,
+        email: userInfo.email ?? null,
+        loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
+        role: refreshedRole,
+        lastSignedIn: signedInAt,
+      });
+      const refreshedUser = await db.getUserByOpenId(userInfo.openId);
+      if (refreshedUser) return refreshedUser;
+    } catch (error) {
+      console.warn("[Auth] Failed to refresh user identity; using stored session user:", error);
+    }
+
     await db.upsertUser({
       openId: user.openId,
       lastSignedIn: signedInAt,

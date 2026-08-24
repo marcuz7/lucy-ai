@@ -208,3 +208,8 @@
 - [ ] Diagnose why a successful Google OAuth return does not expose the admin or super-admin entry point on the canonical domain, then fix it without weakening identity checks.
 
 - [x] Rename the user-facing project title and metadata from Boba Landing Recreation to Lucy AI, then verify no visible legacy title remains.
+
+- [x] Replace the pickleball feature image with a different, similar stock-style visual and integrate it through the required web asset workflow.
+- [x] Fix Google OAuth role assignment and make the authenticated role visible in the navigation without weakening super-admin authorization.
+- [x] Update the hero section with Lucy AI branding, a relevant tagline, and revised description copy.
+- [x] Add an authenticated profile dropdown with user identity, role indicator, admin links, and a clear sign-out action.

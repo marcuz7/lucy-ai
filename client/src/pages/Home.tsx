@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
-import { ArrowRight, Check, CheckCheck, Copy, MessageCircle, Plus, X } from "lucide-react";
+import { ArrowRight, Check, CheckCheck, Copy, LogOut, MessageCircle, Plus, ShieldCheck, UserRound, X } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { QRCodeSVG } from "qrcode.react";
 import { Link } from "wouter";
 import { copyFeedbackLabel } from "./copyFeedback";
 
-const pickleballImage = "/manus-storage/pickleball-blue-court_2e8ca9c0.jpg";
+const pickleballImage = "/manus-storage/lucy-ai-pickleball-feature_0654d039.jpg";
 const dinnerImage = "/manus-storage/dinner-table_decb8fd1.jpg";
 const cabinImage = "/manus-storage/cabin-sunset_54a8ba8b.jpg";
 const launchNumber = "+84837841663";
@@ -40,10 +41,12 @@ function Logo() {
 }
 
 function Header({ onText }: { onText: () => void }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin";
   const isSuperAdmin = user?.isSuperAdmin === true;
-  return <header className="site-header"><div className="header-inner"><Logo /><div className="header-right"><span className="header-kicker">YOUR FIRST AI AGENT</span>{isAdmin ? <><Link href="/admin" className="signup-link">Admin dashboard</Link>{isSuperAdmin && <Link href="/admin/settings" className="signup-link">Super-admin settings</Link>}</> : <button className="signup-link" onClick={() => startLogin()}>Log in / Sign up</button>}<button className="pill-button header-cta" onClick={onText}>Launch Lucy</button></div></div></header>;
+  const roleLabel = isSuperAdmin ? "Super-admin" : isAdmin ? "Admin" : "Member";
+  const initials = (user?.name || user?.email || "L").slice(0, 1).toUpperCase();
+  return <header className="site-header"><div className="header-inner"><Logo /><div className="header-right"><span className="header-kicker">YOUR FIRST AI AGENT</span>{user ? <DropdownMenu><DropdownMenuTrigger asChild><button className="profile-trigger" aria-label={`Open profile menu for ${user.name || user.email || "your account"}`}><span className="profile-avatar">{initials}</span><span className="profile-summary"><strong>{user.name || "Lucy user"}</strong><small>{roleLabel}</small></span></button></DropdownMenuTrigger><DropdownMenuContent align="end" className="profile-menu"><DropdownMenuLabel><span className="profile-menu-name">{user.name || "Lucy user"}</span><span className="profile-menu-email">{user.email || "Signed-in account"}</span></DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuLabel className="profile-role"><ShieldCheck size={14} /> {roleLabel}</DropdownMenuLabel>{isAdmin && <DropdownMenuItem asChild><Link href="/admin"><UserRound size={15} /> Admin dashboard</Link></DropdownMenuItem>}{isSuperAdmin && <DropdownMenuItem asChild><Link href="/admin/settings"><ShieldCheck size={15} /> Super-admin settings</Link></DropdownMenuItem>}<DropdownMenuSeparator /><DropdownMenuItem onClick={() => void logout()} className="profile-signout"><LogOut size={15} /> Sign out</DropdownMenuItem></DropdownMenuContent></DropdownMenu> : <button className="signup-link" onClick={() => startLogin()}>Log in / Sign up</button>}<button className="pill-button header-cta" onClick={onText}>Launch Lucy</button></div></div></header>;
 }
 
 function PhoneMockup() {
@@ -81,7 +84,7 @@ export default function Home() {
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
   const [modal, setModal] = useState(false);
   return <div id="top" className="site-shell"><Header onText={() => setModal(true)} /><main>
-    <section className="hero section-pad"><div className="hero-copy"><div className="eyebrow-tag"><span /> ZERO INSTALLATION · MESSAGE TO LAUNCH</div><h1>Your first AI agent.<br /><em>One message away.</em></h1><p className="hero-lede">Meet Lucy, the useful teammate that starts where you already are. No app to learn, no setup maze, no new tab to manage. Send a message and turn a loose thought into the next right move.</p><SignupCard onText={() => setModal(true)} /></div><PhoneMockup /></section>
+    <section className="hero section-pad"><div className="hero-copy"><div className="eyebrow-tag"><span /> ZERO INSTALLATION · MESSAGE TO LAUNCH</div><h1>Lucy AI.<br /><em>Ready when you are.</em></h1><p className="hero-lede">Lucy AI is the useful agent that starts in the conversation you already use. Ask for research, a plan, a draft, or the next right move—without installing another app or managing another dashboard.</p><SignupCard onText={() => setModal(true)} /></div><PhoneMockup /></section>
     <section className="benefits"><div><Check /> <span>Start from a message</span></div><div><Check /> <span>No installation</span></div><div><Check /> <span>Help that fits the moment</span></div></section>
     <section className="intro section-pad"><span className="eyebrow">BUILT FOR THE WAY YOU ALREADY TALK</span><h2>Bring an agent<br className="mobile-only" /> into the thread.</h2><p>Lucy is not another place to keep open. It is an agent you can call into the conversation when a plan needs making, a question needs answering, or an idea needs momentum.</p><p className="small-copy">Start one-on-one, then invite Lucy wherever the work or the group chat is happening.</p><div className="assistant-card"><div className="assistant-topline"><span className="assistant-dot">✦</span><span className="assistant-live"><i /> available when needed</span></div><h3>Lucy</h3><span>YOUR AI AGENT</span><div className="assistant-thread"><span>can you help us decide?</span><span>Lucy is listening · no rush</span></div><div className="assistant-buttons"><button>message</button><button>add to<br />group</button></div></div></section>
     <section className="uses section-pad"><div className="uses-heading"><span className="eyebrow">ONE MESSAGE. MANY MODES.</span><h2>Think it. Text it.<br />Move it forward.</h2><p>Lucy turns everyday conversations into useful progress without asking you to change your workflow.</p></div><div className="feature-list"><FeatureCard image={pickleballImage} eyebrow="MAKE A PLAN" title="Turn “what should we do?” into a real plan" body="Lucy gathers the constraints, finds the options, and brings the group to a decision everyone can act on." signal="Weekend plans · 4 people" /><FeatureCard image={dinnerImage} eyebrow="MAKE A CALL" title="Get past the endless maybe" body="Give Lucy the preferences and the tradeoffs. It will narrow the choices and explain the recommendation clearly." signal="Dinner thread · two preferences" /><FeatureCard eyebrow="MAKE IT CLEAR" title="Shape the message before you send it" body="Drop in the rough version. Lucy can make it warmer, sharper, shorter, or easier to understand." signal="Drafting together"><div className="mini-chat"><span>make this sound confident, not cold</span><span>Try this: “I’m excited to move ahead. Here’s what I need next…”</span></div></FeatureCard><FeatureCard eyebrow="MAKE SOMETHING" title="Turn a spark into a creative draft" body="Describe the mood, image, song, or idea. Lucy gives the thought a first form you can build on." signal="Creative spark · first draft"><div className="music-note">✦ first draft ready · want it bolder or more surprising?</div></FeatureCard><FeatureCard eyebrow="GET UNSTUCK" title="Ask the question you keep circling" body="Compare, summarize, decode, research, or simply ask for the next step. Lucy helps you start." signal="A question worth asking" /><FeatureCard image={cabinImage} eyebrow="KEEP IT MOVING" title="Remember the details that matter" body="Lucy can keep track of the people, dates, preferences, and decisions that make a plan hold together." signal="Lucy is keeping the details" /></div></section>

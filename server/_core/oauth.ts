@@ -4,10 +4,18 @@ import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+import { ENV } from "./env";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
   return typeof value === "string" ? value : undefined;
+}
+
+export function getOAuthRole(openId: string, email?: string | null): "admin" | "user" {
+  const normalizedEmail = email?.trim().toLowerCase() ?? "";
+  const isConfiguredOwner = Boolean(ENV.ownerOpenId && openId === ENV.ownerOpenId);
+  const isConfiguredSuperAdmin = Boolean(ENV.superAdminEmail && normalizedEmail === ENV.superAdminEmail);
+  return isConfiguredOwner || isConfiguredSuperAdmin ? "admin" : "user";
 }
 
 export function registerOAuthRoutes(app: Express) {
@@ -45,6 +53,7 @@ export function registerOAuthRoutes(app: Express) {
         name: userInfo.name || null,
         email: userInfo.email ?? null,
         loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
+        role: getOAuthRole(userInfo.openId, userInfo.email),
         lastSignedIn: new Date(),
       });
 
