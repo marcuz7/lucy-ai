@@ -103,3 +103,9 @@
 - [x] Verify the refined landing page at desktop and mobile widths, including launch interactions and route health.
 - [x] Run tests, type checking, and production build, then save and deliver the refined checkpoint.
 - [x] Re-test refined launch interactions in Chromium: modal open/close, provisioned SMS href, QR code presence, and copy feedback.
+
+- [x] Remove the image-based logo from the public header and footer.
+- [x] Replace it with a clean text-only Lucy.ai wordmark while preserving accessible labeling and layout.
+- [x] Verify the wordmark at desktop and mobile widths and confirm launch/admin routes remain intact.
+- [x] Run tests, type checking, and production build, then save the text-wordmark checkpoint.
+- [x] Re-verify `/admin` and `/admin/twilio` after the text-only Lucy.ai wordmark change; both protected routes resolve successfully.

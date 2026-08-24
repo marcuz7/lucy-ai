@@ -4,8 +4,6 @@ import { ArrowRight, Check, CheckCheck, Copy, MessageCircle, Plus, X } from "luc
 import { QRCodeSVG } from "qrcode.react";
 import { copyFeedbackLabel } from "./copyFeedback";
 
-const logoMark = "/manus-storage/lucyai-logo_3ce5ef2d.jpeg";
-const logoLockup = "/manus-storage/lucyai-full-lockup_5e24f2f6.png";
 const pickleballImage = "/manus-storage/pickleball-blue-court_2e8ca9c0.jpg";
 const dinnerImage = "/manus-storage/dinner-table_decb8fd1.jpg";
 const cabinImage = "/manus-storage/cabin-sunset_54a8ba8b.jpg";
@@ -36,7 +34,7 @@ const faqs = [
 ];
 
 function Logo() {
-  return <a href="#top" className="brand" aria-label="LucyAi home"><img src={logoLockup} alt="Lucy.ai" /></a>;
+  return <a href="#top" className="brand" aria-label="Lucy.ai home"><span className="wordmark">Lucy<span aria-hidden="true">.</span>ai</span></a>;
 }
 
 function Header({ onText }: { onText: () => void }) {

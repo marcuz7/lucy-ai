@@ -21,3 +21,13 @@ The updated desktop fold now has a more deliberate split: the hero headline has 
 ## Route and runtime verification
 
 The full-page desktop pass confirms the revised rhythm holds through the intro, product capability grid, FAQ, closing CTA, and footer. Every major lower-page card now carries an explicit thread or group-chat signal. The protected `/admin` and `/admin/twilio` routes still render correctly after the public CSS changes. Latest client/network inspection shows successful page and analytics requests; the only server log errors are historical pre-repair OAuth entries for the missing `users` table.
+
+
+## Text-only wordmark verification
+
+The image-based logo has been removed from the public header and footer. The new wordmark renders as plain text, “Lucy.ai,” with a small mustard period as the only accent. Desktop and mobile screenshots confirm the wordmark is crisp, aligned, and does not compete with the navigation or Launch Lucy control. The landing hero and launch module remain visually unchanged apart from the cleaner brand treatment.
+
+
+## Post-wordmark route verification
+
+After the text-only wordmark change, `/admin` briefly displayed its normal authentication loading state and then resolved successfully to the authenticated Message dashboard. The dashboard still shows the Twilio settings link, filters, queue metrics, and the existing legacy pending job. This confirms the public branding change did not interrupt protected route resolution.
