@@ -23,3 +23,10 @@
 - [x] Add chunking, typing-delay metadata, outbound dispatch boundaries, and layered memory retrieval interfaces.
 - [x] Verify the architecture in stub mode and document what requires real channel/provider credentials.
 - [x] Save the architecture-enabled Lucy checkpoint and deliver it.
+
+- [x] Add a clear signup/login entry point using the existing Manus OAuth flow.
+- [x] Add admin-only Twilio credential storage and management procedures.
+- [x] Add an admin settings UI for Account SID, Auth Token, and Twilio phone number.
+- [x] Add masking, validation, and credential test feedback without exposing secrets.
+- [x] Verify regular-user access is denied and admin flows work responsively.
+- [x] Save the admin-enabled Lucy checkpoint and deliver it.

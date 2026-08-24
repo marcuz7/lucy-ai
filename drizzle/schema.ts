@@ -12,6 +12,16 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export const lucyTwilioCredentials = mysqlTable("lucy_twilio_credentials", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerUserId: int("owner_user_id").notNull().unique(),
+  accountSid: varchar("account_sid", { length: 64 }).notNull(),
+  authTokenEncrypted: text("auth_token_encrypted").notNull(),
+  phoneNumber: varchar("phone_number", { length: 32 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
 export const lucyJobs = mysqlTable("lucy_jobs", {
   id: varchar("id", { length: 36 }).primaryKey(),
   messageId: varchar("message_id", { length: 191 }).notNull().unique(),
@@ -31,5 +41,7 @@ export const lucyJobs = mysqlTable("lucy_jobs", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+export type LucyTwilioCredentials = typeof lucyTwilioCredentials.$inferSelect;
+export type InsertLucyTwilioCredentials = typeof lucyTwilioCredentials.$inferInsert;
 export type LucyJob = typeof lucyJobs.$inferSelect;
 export type InsertLucyJob = typeof lucyJobs.$inferInsert;
