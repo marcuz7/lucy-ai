@@ -9,10 +9,10 @@ import { LLM_PRESETS, type LlmProvider } from "@shared/llm";
 const senderList = (value: string) => value.split(/[\s,]+/).map(item => item.trim()).filter(Boolean);
 
 function ProtectedState({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   if (loading) return <main className="settings-shell"><p>Loading Lucy settings…</p></main>;
   if (!user) return <main className="settings-shell"><div className="settings-card"><span className="eyebrow">LUCY ADMIN</span><h1>Sign in to manage channels.</h1><p>Provider credentials are available only to authenticated Lucy administrators.</p><button className="pill-button settings-button" onClick={() => startLogin()}>Sign up / Log in <ArrowLeft size={18} /></button><Link href="/" className="back-link">Back to Lucy</Link></div></main>;
-  if (!user.isSuperAdmin) return <main className="settings-shell"><div className="settings-card"><ShieldAlert className="access-icon" /><span className="eyebrow">SUPER-ADMIN ONLY</span><h1>Secret management is restricted.</h1><p>Your account can monitor Lucy, but only the designated super-admin owner can view, save, test, or rotate provider and model credentials.</p><Link href="/admin" className="back-link">Back to dashboard</Link></div></main>;
+  if (!user.isSuperAdmin) return <main className="settings-shell"><div className="settings-card"><ShieldAlert className="access-icon" /><span className="eyebrow">SUPER-ADMIN ONLY</span><h1>Secret management is restricted.</h1><p>Your account can monitor Lucy, but only the designated super-admin owner can view, save, test, or rotate provider and model credentials.</p><p className="field-help">Signed in as <strong>{user.email ?? "an account without an email"}</strong>. To use the super-admin, switch to the Google/Manus account registered as <strong>marcuz7@gmail.com</strong>.</p><div className="settings-actions"><button className="secondary-button" onClick={() => void logout()}>Sign out and switch account</button><Link href="/admin" className="back-link">Back to dashboard</Link></div></div></main>;
   return <>{children}</>;
 }
 

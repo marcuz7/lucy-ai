@@ -196,3 +196,5 @@
 - [x] Diagnose and fix the current inability to sign in to `/admin/settings` on the canonical LucyAi domain without weakening super-admin authorization.
 
 - [x] Restrict super-admin secret management to the single configured email `marcuz7@gmail.com` and verify another authenticated admin is denied.
+
+- [x] Diagnose and restore the repeated super-admin login failure on the canonical LucyAi domain while preserving exact-email authorization.
