@@ -51,3 +51,8 @@
 - [x] Rewrite feature cards, onboarding steps, FAQ, CTA, and metadata in Lucy’s own voice.
 - [x] Verify the new public site at mobile and desktop widths without breaking admin routes.
 - [x] Save and deliver the differentiated Lucy website checkpoint.
+
+- [x] Add a visible configurable launch phone number to the phone demo.
+- [x] Add click-to-copy behavior with clipboard fallback and success feedback.
+- [x] Verify keyboard accessibility and mobile/desktop behavior through a native button with focus styling, clipboard fallback, explicit feedback labeling, and mobile/desktop visual checks.
+- [x] Save and deliver the interactive phone demo checkpoint.

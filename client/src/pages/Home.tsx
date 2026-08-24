@@ -1,12 +1,27 @@
 /* Lucy’s original product story: a zero-install AI agent that launches from one message. */
 import { useState } from "react";
 import { startLogin } from "@/const";
-import { ArrowRight, Check, MessageCircle, Plus, X } from "lucide-react";
+import { ArrowRight, Check, Copy, MessageCircle, Plus, X, CheckCheck } from "lucide-react";
+import { copyFeedbackLabel } from "./copyFeedback";
 
 const logoMark = "/manus-storage/boba-logo-mark_5dd20a42.png";
 const pickleballImage = "/manus-storage/pickleball-blue-court_2e8ca9c0.jpg";
 const dinnerImage = "/manus-storage/dinner-table_decb8fd1.jpg";
 const cabinImage = "/manus-storage/cabin-sunset_54a8ba8b.jpg";
+const launchNumber = "+1 (555) 010-2026"; // Replace with the provisioned Lucy number before launch.
+
+async function copyToClipboard(value: string) {
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(value);
+  const area = document.createElement("textarea");
+  area.value = value;
+  area.setAttribute("readonly", "");
+  area.style.position = "fixed";
+  area.style.opacity = "0";
+  document.body.appendChild(area);
+  area.select();
+  document.execCommand("copy");
+  area.remove();
+}
 
 const faqs = [
   ["What is Lucy?", "Lucy is your first AI agent: a helpful teammate you can launch from a text. Ask for a plan, a draft, a decision, or a creative spark and Lucy gets to work in the conversation you already use."],
@@ -20,7 +35,10 @@ const faqs = [
 
 function Logo() { return <a href="#top" className="brand" aria-label="Lucy home"><img src={logoMark} alt="" /><span>Lucy</span></a>; }
 function Header({ onText }: { onText: () => void }) { return <header className="site-header"><div className="header-inner"><Logo /><div className="header-right"><span className="header-kicker">YOUR FIRST AI AGENT</span><button className="signup-link" onClick={() => startLogin()}>Sign up</button><button className="pill-button header-cta" onClick={onText}>Launch Lucy</button></div></div></header>; }
-function PhoneMockup() { return <div className="phone-wrap" aria-label="Lucy in a group text message"><div className="phone"><div className="phone-notch" /><div className="phone-status"><span>9:41</span><span>▮▮▮ ◉ ▰</span></div><div className="chat-head"><div className="avatar-row"><span className="avatar green">M</span><span className="avatar lilac">J</span><span className="avatar plum">L</span></div><strong>Weekend plan ✦</strong><small>You, Maya, Jon · Lucy joined</small></div><div className="messages"><div className="bubble user">we need a plan for saturday</div><div className="bubble user">somewhere easy, not too expensive</div><div className="bubble question">can you find three options for all four of us?</div><div className="bubble boba"><strong>Lucy</strong><br />On it. I found three nearby options, sorted by price and travel time. Want the shortlist?</div></div><div className="imessage">Message <span>↑</span></div></div></div>; }
+function PhoneMockup() {
+  const [copied, setCopied] = useState(false);
+  const copyNumber = async () => { try { await copyToClipboard(launchNumber); setCopied(true); window.setTimeout(() => setCopied(false), 1800); } catch { setCopied(false); } };
+  return <div className="phone-wrap" aria-label="Lucy in a group text message"><div className="phone"><div className="phone-notch" /><div className="phone-status"><span>9:41</span><span>▮▮▮ ◉ ▰</span></div><div className="chat-head"><div className="avatar-row"><span className="avatar green">M</span><span className="avatar lilac">J</span><span className="avatar plum">L</span></div><strong>Weekend plan ✦</strong><small>You, Maya, Jon · Lucy joined</small></div><div className="messages"><div className="bubble user">we need a plan for saturday</div><div className="bubble user">somewhere easy, not too expensive</div><div className="bubble question">can you find three options for all four of us?</div><div className="bubble boba"><strong>Lucy</strong><br />On it. I found three nearby options, sorted by price and travel time. Want the shortlist?</div></div><div className="imessage">Message <span>↑</span></div></div><button className="launch-number" onClick={copyNumber} aria-label={`Copy Lucy launch number ${launchNumber}`}><span><small>LUCY LAUNCH NUMBER</small><strong>{launchNumber}</strong></span>{copied ? <><CheckCheck size={18} /><b aria-live="polite">{copyFeedbackLabel(true)}</b></> : <><Copy size={18} /><b aria-live="polite">{copyFeedbackLabel(false)}</b></>}</button></div>; }
 function SignupCard({ onText }: { onText: () => void }) { return <div className="signup-card"><button className="open-messages" onClick={onText}><MessageCircle size={25} /> Message to launch</button><p className="legal">By selecting “Message to launch”, you agree to Lucy’s <u>Terms of Service</u> and <u>Privacy Notice</u>. Lucy is an AI assistant and may get things wrong. Reply STOP to opt out of messages at any time.</p><div className="steps"><span><b>1</b> Open messages</span><ArrowRight size={18} /><span><b>2</b> Send hello</span><ArrowRight size={18} /><span><b>3</b> Lucy gets to work</span></div></div>; }
 function FeatureCard({ image, eyebrow, title, body, children }: { image?: string; eyebrow: string; title: string; body: string; children?: React.ReactNode }) { return <article className="feature-card">{image && <img className="feature-image" src={image} alt="" />}<div className="feature-copy"><span className="eyebrow">{eyebrow}</span><h3>{title}</h3><p>{body}</p>{children}</div></article>; }
 
