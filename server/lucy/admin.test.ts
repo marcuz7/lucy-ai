@@ -11,10 +11,34 @@ function context(role: "admin" | "user"): TrpcContext {
   };
 }
 
+describe("admin Telnyx access", () => {
+  it("rejects a regular user", async () => {
+    const caller = appRouter.createCaller(context("user"));
+    await expect(caller.telnyx.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("allows an admin to read masked status", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.telnyx.status()).resolves.toMatchObject({ configured: false });
+  });
+
+  it("rejects regular users from saving or testing Telnyx", async () => {
+    const caller = appRouter.createCaller(context("user"));
+    await expect(caller.telnyx.save({ apiKey: "telnyx-key-123", publicKey: "-----BEGIN PUBLIC KEY-----", phoneNumber: "+15551234567", allowedSenders: ["+15550000001"] })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.telnyx.test()).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+});
+
 describe("admin Twilio access", () => {
   it("rejects a regular user", async () => {
     const caller = appRouter.createCaller(context("user"));
     await expect(caller.twilio.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("rejects regular users from saving or testing Twilio", async () => {
+    const caller = appRouter.createCaller(context("user"));
+    await expect(caller.twilio.save({ accountSid: "AC1234567890", authToken: "auth-token-123", phoneNumber: "+15551234567", allowedSenders: ["+15550000001"] })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.twilio.test()).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("allows an admin to read masked status and dashboard data", async () => {

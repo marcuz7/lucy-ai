@@ -157,3 +157,7 @@
 - [x] Save the completed Telnyx P0 checkpoint after the expanded verification passes.
 
 - [x] Fix the missing post-login navigation entry to the Telnyx configuration page and verify the route is discoverable to admins.
+
+- [x] Consolidate Twilio and Telnyx credentials into one admin provider setup page with clear channel sections.
+- [x] Ensure the unified provider setup page is protected by admin authentication and add password/access-control regression coverage.
+- [x] Verify the unified setup page responsively, run tests and build, then save a checkpoint.
