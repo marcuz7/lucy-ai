@@ -1,6 +1,7 @@
 import { count, desc, eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { lucyJobs, lucyMessages } from "../../drizzle/schema";
+import { getRecentAgentRuns } from "./agentPersistence";
 
 export async function getDashboardSummary() {
   const db = await getDb();
@@ -18,6 +19,10 @@ export async function getDashboardSummary() {
     if (row.status === "dead_letter") queue.deadLetter = value;
   }
   return { queue, messages };
+}
+
+export async function getAgentRuns() {
+  return getRecentAgentRuns(50);
 }
 
 export async function getQueueJobs() {

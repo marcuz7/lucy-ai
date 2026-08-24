@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decryptSecret, encryptSecret, maskAccountSid, maskPhoneNumber } from "./credentials";
+import { decryptSecret, encryptSecret, maskAccountSid, maskPhoneNumber, normalizeAllowedSenders } from "./credentials";
 
 describe("Lucy Twilio credentials", () => {
   it("encrypts and decrypts a token without storing the plaintext", () => {
@@ -12,5 +12,9 @@ describe("Lucy Twilio credentials", () => {
   it("masks account and phone identifiers", () => {
     expect(maskAccountSid("AC1234567890")).toBe("AC••••••7890");
     expect(maskPhoneNumber("+15551234567")).toBe("••••••••4567");
+  });
+
+  it("normalizes only unique E.164 sender numbers", () => {
+    expect(normalizeAllowedSenders(["+15550000000, +15550000000", "bad", "+15550000001"])).toEqual(["+15550000000", "+15550000001"]);
   });
 });

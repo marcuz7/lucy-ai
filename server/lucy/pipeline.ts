@@ -1,11 +1,15 @@
 import { memoryStore } from "./memory";
 import { recordConversationEvent } from "./history";
 import { HeuristicSpeakClassifier } from "./classifier";
-import { BuiltInLucyEngine, routeMessage } from "./engine";
+import { runManagedAgent } from "./agent";
+import { redactAgentText } from "./agentPersistence";
 import type { ChannelAdapter, InboundMessage, OutboundChunk } from "./types";
 
 const classifier = new HeuristicSpeakClassifier();
-const engine = new BuiltInLucyEngine();
+export function safeProgressText(text: string) {
+  return redactAgentText(text);
+}
+
 function chunksFor(text: string, conversationId: string): OutboundChunk[] {
   const normalized = text.replace(/\s+/g, " ").trim();
   const pieces = normalized.match(/.{1,320}(?:\s|$)/g)?.map(piece => piece.trim()).filter(Boolean) ?? [normalized];
@@ -21,9 +25,18 @@ export async function processInbound(message: InboundMessage, adapter: ChannelAd
   await memoryStore.saveDecision(message.id, decision);
   if (!decision.shouldSpeak) return;
 
-  const response = await engine.respond({ message, memory, route: routeMessage(message.text) });
+  const result = await runManagedAgent({
+    message,
+    memory,
+    onProgress: async event => {
+      const safeProgress = safeProgressText(event.text);
+      await recordConversationEvent({ chatId: message.chatId, messageId: message.id, role: "system", text: `Lucy progress: ${safeProgress}` });
+      await adapter.sendText(message.senderId, safeProgress);
+    },
+  });
+  const response = result.text;
   await memoryStore.appendTurn(message.chatId, { role: "assistant", text: response, timestamp: Date.now() });
-  await recordConversationEvent({ chatId: message.chatId, role: "assistant", text: response });
+  await recordConversationEvent({ chatId: message.chatId, messageId: message.id, role: "assistant", text: response });
   for (const chunk of chunksFor(response, message.chatId)) {
     // The delay is metadata for a channel adapter. A real adapter can send typing
     // indicators, sleep, then dispatch. Stub mode sends immediately.

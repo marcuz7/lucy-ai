@@ -18,6 +18,7 @@ export const lucyTwilioCredentials = mysqlTable("lucy_twilio_credentials", {
   accountSid: varchar("account_sid", { length: 64 }).notNull(),
   authTokenEncrypted: text("auth_token_encrypted").notNull(),
   phoneNumber: varchar("phone_number", { length: 32 }).notNull(),
+  allowedSenders: text("allowed_senders"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
@@ -41,6 +42,63 @@ export const lucyMessages = mysqlTable("lucy_messages", {
   mediaJson: text("media_json"),
   receivedAt: timestamp("received_at").defaultNow().notNull(),
 });
+
+export const lucyAgentRuns = mysqlTable("lucy_agent_runs", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  messageId: varchar("message_id", { length: 191 }).notNull().unique(),
+  chatId: varchar("chat_id", { length: 191 }).notNull(),
+  senderId: varchar("sender_id", { length: 191 }).notNull(),
+  provider: varchar("provider", { length: 32 }).default("managed").notNull(),
+  status: mysqlEnum("status", ["queued", "planning", "running", "awaiting_approval", "completed", "failed", "cancelled", "limit_reached"]).default("queued").notNull(),
+  requestText: text("request_text").notNull(),
+  resultText: text("result_text"),
+  currentStep: int("current_step").default(0).notNull(),
+  maxSteps: int("max_steps").default(6).notNull(),
+  toolCallsUsed: int("tool_calls_used").default(0).notNull(),
+  maxToolCalls: int("max_tool_calls").default(8).notNull(),
+  costUnitsUsed: int("cost_units_used").default(0).notNull(),
+  maxCostUnits: int("max_cost_units").default(20).notNull(),
+  cancelRequestedAt: timestamp("cancel_requested_at"),
+  progressSentAt: timestamp("progress_sent_at"),
+  deadlineAt: timestamp("deadline_at"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, table => ({
+  statusCreatedIdx: index("idx_lucy_agent_runs_status_created").on(table.status, table.createdAt),
+  chatCreatedIdx: index("idx_lucy_agent_runs_chat_created").on(table.chatId, table.createdAt),
+}));
+
+export const lucyAgentToolCalls = mysqlTable("lucy_agent_tool_calls", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  runId: varchar("run_id", { length: 36 }).notNull(),
+  sequence: int("sequence").notNull(),
+  toolName: varchar("tool_name", { length: 64 }).notNull(),
+  arguments: json("arguments").notNull(),
+  status: mysqlEnum("status", ["requested", "running", "succeeded", "failed", "denied"]).default("requested").notNull(),
+  output: text("output"),
+  error: text("error"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, table => ({
+  runSequenceIdx: index("idx_lucy_agent_tool_calls_run_sequence").on(table.runId, table.sequence),
+}));
+
+export const lucyAgentApprovals = mysqlTable("lucy_agent_approvals", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  runId: varchar("run_id", { length: 36 }).notNull(),
+  toolCallId: varchar("tool_call_id", { length: 36 }).notNull(),
+  action: varchar("action", { length: 255 }).notNull(),
+  token: varchar("token", { length: 64 }).notNull().unique(),
+  status: mysqlEnum("status", ["pending", "approved", "denied", "expired"]).default("pending").notNull(),
+  requestedAt: timestamp("requested_at").defaultNow().notNull(),
+  respondedAt: timestamp("responded_at"),
+  expiresAt: timestamp("expires_at"),
+} , table => ({
+  runStatusIdx: index("idx_lucy_agent_approvals_run_status").on(table.runId, table.status),
+}));
 
 export const lucyJobs = mysqlTable("lucy_jobs", {
   id: varchar("id", { length: 36 }).primaryKey(),
@@ -69,3 +127,9 @@ export type LucyTwilioCredentials = typeof lucyTwilioCredentials.$inferSelect;
 export type InsertLucyTwilioCredentials = typeof lucyTwilioCredentials.$inferInsert;
 export type LucyJob = typeof lucyJobs.$inferSelect;
 export type InsertLucyJob = typeof lucyJobs.$inferInsert;
+export type LucyAgentRun = typeof lucyAgentRuns.$inferSelect;
+export type InsertLucyAgentRun = typeof lucyAgentRuns.$inferInsert;
+export type LucyAgentToolCall = typeof lucyAgentToolCalls.$inferSelect;
+export type InsertLucyAgentToolCall = typeof lucyAgentToolCalls.$inferInsert;
+export type LucyAgentApproval = typeof lucyAgentApprovals.$inferSelect;
+export type InsertLucyAgentApproval = typeof lucyAgentApprovals.$inferInsert;

@@ -1,0 +1,1 @@
+ALTER TABLE `lucy_agent_runs` MODIFY COLUMN `status` enum('queued','planning','running','awaiting_approval','completed','failed','cancelled','limit_reached') NOT NULL DEFAULT 'queued';

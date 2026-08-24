@@ -114,3 +114,28 @@
 - [x] Pair the logo mark with the text-only Lucy.ai wordmark in the public header and footer.
 - [x] Verify the logo lockup at desktop and mobile widths and preserve launch/admin routes and interactions.
 - [x] Run tests, type checking, and production build, then save the logo integration checkpoint.
+
+- [x] Choose the first execution route: safe-first managed agent; defer the full sandboxed Linux worker.
+- [x] Confirm user-owned Twilio configuration and the first three user-facing tools: public web lookup, URL fetch, and bounded read-only API reads.
+- [x] Define durable agent runs, tool calls, progress events, approval requests, cancellation, and audit records.
+- [x] Implement the asynchronous tool-using agent loop with bounded steps, deadlines, and durable status transitions.
+- [x] Add sender allowlisting, rate/cost limits, secret redaction, approval-ready interfaces, signed webhook validation, and admin observability.
+- [x] Connect the chosen provider boundary and verify the stub/signed webhook path; live Twilio send remains pending user credentials.
+- [x] Run tests, type checking, and production build, then save the execution-agent checkpoint.
+
+- [x] Lock phase one to the managed safe-first agent and preserve a future sandbox-worker provider boundary.
+- [x] Keep Twilio credentials, the user’s chosen phone number, and approved sender numbers configurable through the existing admin settings flow.
+- [x] Implement initial read-only tools: public web lookup, URL fetch, and a bounded read-only API tool.
+- [x] Send one concise progress SMS only when execution crosses a delay threshold, followed by the final result.
+- [x] Add approval-ready interfaces for future write actions without enabling destructive tools in phase one.
+
+- [x] Add true managed-agent cancellation: durable cancel state, worker cancellation check, protected admin API, and regression coverage.
+- [x] Add explicit per-run step/tool/time cost limits with durable limit outcomes and regression coverage.
+- [x] Add secret-redacted agent audit logging for tool arguments, outputs, errors, and progress messages.
+- [x] Re-run tests, type checking, and production build, then save the hardened execution-agent checkpoint.
+
+- [x] Add explicit regression coverage for tool-call budget exhaustion and deadline termination.
+- [x] Add focused regression coverage proving persisted progress and audit values are secret-redacted.
+- [x] Save a new execution-agent hardening checkpoint after the expanded verification passes.
+- [x] Add a pipeline regression test proving redacted progress text is persisted and sent, not only transformed by the helper.
+- [x] Re-run the full test, type-check, and production-build suite after the persisted-progress regression.

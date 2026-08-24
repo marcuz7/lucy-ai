@@ -1,0 +1,1 @@
+ALTER TABLE `lucy_twilio_credentials` ADD `allowed_senders` text;

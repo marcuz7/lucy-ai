@@ -37,4 +37,14 @@ describe("admin Twilio access", () => {
     const caller = appRouter.createCaller(context("user"));
     await expect(caller.dashboard.messageDetail({ messageId: "missing-message" })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
+
+  it("allows admins to request cancellation but does not acknowledge unknown runs", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.dashboard.cancelAgentRun({ runId: "00000000-0000-4000-8000-000000000000" })).resolves.toEqual({ accepted: false });
+  });
+
+  it("rejects regular users from cancelling agent runs", async () => {
+    const caller = appRouter.createCaller(context("user"));
+    await expect(caller.dashboard.cancelAgentRun({ runId: "00000000-0000-4000-8000-000000000000" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
 });

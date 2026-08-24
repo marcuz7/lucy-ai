@@ -23,6 +23,39 @@ export type SpeakDecision = {
 
 export type EngineRoute = "conversation" | "web-rag" | "image-generation" | "music-generation";
 
+export type AgentProvider = "managed" | "sandbox";
+export type AgentRunStatus = "queued" | "planning" | "running" | "awaiting_approval" | "completed" | "failed" | "cancelled" | "limit_reached";
+export type AgentToolStatus = "requested" | "running" | "succeeded" | "failed" | "denied";
+export type AgentApprovalStatus = "pending" | "approved" | "denied" | "expired";
+
+export type AgentProgressEvent = {
+  runId: string;
+  chatId: string;
+  text: string;
+  kind: "started" | "tool" | "completed" | "failed" | "approval";
+};
+
+export type AgentRunInput = {
+  message: InboundMessage;
+  memory: MemorySnapshot;
+  maxSteps?: number;
+  maxToolCalls?: number;
+  maxCostUnits?: number;
+  deadlineMs?: number;
+  onProgress?: (event: AgentProgressEvent) => Promise<void>;
+};
+
+export type AgentRunResult = {
+  runId: string;
+  status: "completed" | "failed" | "cancelled" | "limit_reached" | "awaiting_approval";
+  text: string;
+};
+
+export type AgentExecutionProvider = {
+  name: AgentProvider;
+  run(input: AgentRunInput): Promise<AgentRunResult>;
+};
+
 export type OutboundChunk = {
   id: string;
   conversationId: string;

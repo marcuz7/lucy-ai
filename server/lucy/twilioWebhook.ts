@@ -1,7 +1,9 @@
+import twilio from "twilio";
 import type { Express, Request, Response } from "express";
 import { enqueueMessage } from "./queue";
 import { memoryStore } from "./memory";
 import type { ChannelAdapter, InboundMessage } from "./types";
+import { getTwilioCredentialsForWebhook } from "./credentials";
 
 const seenMessageIds = new Set<string>();
 const hourlyCounts = new Map<string, { startedAt: number; count: number }>();
@@ -14,9 +16,10 @@ const xml = (text: string) => `<?xml version="1.0" encoding="UTF-8"?><Response><
 
 class TwilioAdapter implements ChannelAdapter {
   async sendText(recipientId: string, text: string) {
-    const sid = process.env.TWILIO_ACCOUNT_SID;
-    const token = process.env.TWILIO_AUTH_TOKEN;
-    const from = process.env.TWILIO_PHONE_NUMBER;
+    const stored = await getTwilioCredentialsForWebhook();
+    const sid = stored?.accountSid ?? process.env.TWILIO_ACCOUNT_SID;
+    const token = stored?.authToken ?? process.env.TWILIO_AUTH_TOKEN;
+    const from = stored?.phoneNumber ?? process.env.TWILIO_PHONE_NUMBER;
     if (!sid || !token || !from) {
       console.info(`[Lucy stub] outbound to ${recipientId}: ${text}`);
       return {};
@@ -43,13 +46,27 @@ function withinRateLimit(senderId: string) {
 }
 
 export function registerTwilioWebhook(app: Express) {
-  app.post("/api/webhooks/twilio/incoming", (req: Request, res: Response) => {
+  app.post("/api/webhooks/twilio/incoming", async (req: Request, res: Response) => {
+    const stored = await getTwilioCredentialsForWebhook();
+    const authToken = stored?.authToken ?? process.env.TWILIO_AUTH_TOKEN;
+    const signature = req.get("X-Twilio-Signature");
+    if (authToken) {
+      const forwardedProto = String(req.get("x-forwarded-proto") ?? req.protocol).split(",")[0].trim();
+      const forwardedHost = String(req.get("x-forwarded-host") ?? req.get("host") ?? "");
+      const webhookUrl = `${forwardedProto}://${forwardedHost}${req.originalUrl}`;
+      if (!signature || !twilio.validateRequest(authToken, signature, webhookUrl, req.body ?? {})) {
+        res.status(403).type("text/plain").send("Invalid Twilio signature");
+        return;
+      }
+    }
+
     const senderId = String(req.body?.From ?? "");
     const text = String(req.body?.Body ?? "").trim();
     const messageId = String(req.body?.MessageSid ?? `${senderId}:${Date.now()}`);
     const chatId = String(req.body?.ConversationSid ?? senderId);
 
     // Twilio needs a fast response. Compliance commands are handled before AI.
+
     if (OPT_OUT.test(text)) {
       void memoryStore.optOut(senderId);
       res.type("text/xml").send(xml("You’re unsubscribed. Reply START to opt back in."));
@@ -66,6 +83,11 @@ export function registerTwilioWebhook(app: Express) {
     }
     if (!senderId || !text) {
       res.type("text/xml").send(xml("Lucy could not read that message."));
+      return;
+    }
+    const configuredSenders = stored?.allowedSenders ?? String(process.env.LUCY_ALLOWED_SENDERS ?? "").split(/[\s,]+/).map(value => value.trim()).filter(Boolean);
+    if (authToken && !configuredSenders.includes(senderId)) {
+      res.type("text/xml").send(xml("This Lucy number is not enabled for this sender."));
       return;
     }
     if (seenMessageIds.has(messageId)) {

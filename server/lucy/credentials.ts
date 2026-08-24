@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { lucyTwilioCredentials } from "../../drizzle/schema";
 
@@ -25,11 +25,17 @@ export function decryptSecret(value: string) {
   return Buffer.concat([decipher.update(Buffer.from(encryptedText, "base64url")), decipher.final()]).toString("utf8");
 }
 
-export async function saveTwilioCredentials(ownerUserId: number, input: { accountSid: string; authToken: string; phoneNumber: string }) {
+export function normalizeAllowedSenders(values: string[]) {
+  return Array.from(new Set(values.flatMap(value => value.split(/[\s,]+/)).map(value => value.trim()).filter(Boolean))).filter(value => /^\+[1-9]\d{7,14}$/.test(value));
+}
+
+export async function saveTwilioCredentials(ownerUserId: number, input: { accountSid: string; authToken: string; phoneNumber: string; allowedSenders: string[] }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not configured");
-  await db.insert(lucyTwilioCredentials).values({ ownerUserId, accountSid: input.accountSid.trim(), authTokenEncrypted: encryptSecret(input.authToken.trim()), phoneNumber: input.phoneNumber.trim() }).onDuplicateKeyUpdate({
-    set: { accountSid: input.accountSid.trim(), authTokenEncrypted: encryptSecret(input.authToken.trim()), phoneNumber: input.phoneNumber.trim(), updatedAt: new Date() },
+  const allowedSenders = normalizeAllowedSenders(input.allowedSenders);
+  if (!allowedSenders.length) throw new Error("Add at least one allowlisted sender number in E.164 format");
+  await db.insert(lucyTwilioCredentials).values({ ownerUserId, accountSid: input.accountSid.trim(), authTokenEncrypted: encryptSecret(input.authToken.trim()), phoneNumber: input.phoneNumber.trim(), allowedSenders: JSON.stringify(allowedSenders) }).onDuplicateKeyUpdate({
+    set: { accountSid: input.accountSid.trim(), authTokenEncrypted: encryptSecret(input.authToken.trim()), phoneNumber: input.phoneNumber.trim(), allowedSenders: JSON.stringify(allowedSenders), updatedAt: new Date() },
   });
 }
 
@@ -52,10 +58,22 @@ export async function testTwilioCredentials(ownerUserId: number) {
   return response.ok ? { ok: true, message: "Twilio credentials are valid." } : { ok: false, message: "Twilio rejected these credentials." };
 }
 
+export async function getTwilioCredentialsForWebhook() {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(lucyTwilioCredentials).orderBy(desc(lucyTwilioCredentials.updatedAt)).limit(1);
+  const row = rows[0];
+  let allowedSenders: string[] = [];
+  try { allowedSenders = row?.allowedSenders ? JSON.parse(row.allowedSenders) : []; } catch { allowedSenders = []; }
+  return row ? { accountSid: row.accountSid, authToken: decryptSecret(row.authTokenEncrypted), phoneNumber: row.phoneNumber, allowedSenders } : null;
+}
+
 export async function getTwilioCredentialStatus(ownerUserId: number) {
   const db = await getDb();
-  if (!db) return { configured: false, accountSid: null, phoneNumber: null, updatedAt: null };
-  const rows = await db.select({ accountSid: lucyTwilioCredentials.accountSid, phoneNumber: lucyTwilioCredentials.phoneNumber, updatedAt: lucyTwilioCredentials.updatedAt }).from(lucyTwilioCredentials).where(eq(lucyTwilioCredentials.ownerUserId, ownerUserId)).limit(1);
+  if (!db) return { configured: false, accountSid: null, phoneNumber: null, allowedSenders: [], allowedSendersCount: 0, updatedAt: null };
+  const rows = await db.select({ accountSid: lucyTwilioCredentials.accountSid, phoneNumber: lucyTwilioCredentials.phoneNumber, allowedSenders: lucyTwilioCredentials.allowedSenders, updatedAt: lucyTwilioCredentials.updatedAt }).from(lucyTwilioCredentials).where(eq(lucyTwilioCredentials.ownerUserId, ownerUserId)).limit(1);
   const row = rows[0];
-  return row ? { configured: true, accountSid: maskAccountSid(row.accountSid), phoneNumber: maskPhoneNumber(row.phoneNumber), updatedAt: row.updatedAt } : { configured: false, accountSid: null, phoneNumber: null, updatedAt: null };
+  let allowedSenders: string[] = [];
+  try { allowedSenders = row?.allowedSenders ? JSON.parse(row.allowedSenders) : []; } catch { allowedSenders = []; }
+  return row ? { configured: true, accountSid: maskAccountSid(row.accountSid), phoneNumber: maskPhoneNumber(row.phoneNumber), allowedSenders: allowedSenders.map(maskPhoneNumber), allowedSendersCount: allowedSenders.length, updatedAt: row.updatedAt } : { configured: false, accountSid: null, phoneNumber: null, allowedSenders: [], allowedSendersCount: 0, updatedAt: null };
 }

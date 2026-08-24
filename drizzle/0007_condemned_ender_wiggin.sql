@@ -1,0 +1,1 @@
+ALTER TABLE `lucy_twilio_credentials` MODIFY COLUMN `allowed_senders` text;

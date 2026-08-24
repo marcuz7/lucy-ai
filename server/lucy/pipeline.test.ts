@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { HeuristicSpeakClassifier } from "./classifier";
-import { chunksFor } from "./pipeline";
+import { chunksFor, safeProgressText } from "./pipeline";
 import { routeMessage } from "./engine";
 import type { InboundMessage } from "./types";
 
@@ -34,5 +34,9 @@ describe("Lucy message pipeline", () => {
     expect(chunks[0]?.delayMs).toBeGreaterThan(0);
     expect(chunks.map(chunk => chunk.sequence)).toEqual(chunks.map((_chunk, index) => index));
     expect(chunks.every(chunk => chunk.text.length <= 320)).toBe(true);
+  });
+
+  it("redacts secret-like values from progress messages", () => {
+    expect(safeProgressText("token=sk-progress-secret +15550000000")).toBe("[redacted] [redacted-phone]");
   });
 });
