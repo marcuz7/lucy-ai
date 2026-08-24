@@ -139,3 +139,19 @@
 - [x] Save a new execution-agent hardening checkpoint after the expanded verification passes.
 - [x] Add a pipeline regression test proving redacted progress text is persisted and sent, not only transformed by the helper.
 - [x] Re-run the full test, type-check, and production-build suite after the persisted-progress regression.
+
+- [x] Confirm P0 uses Telnyx as an additional provider-neutral adapter while retaining the existing Twilio path.
+- [x] Add secure admin-managed Telnyx provider configuration for API key, public key, phone number, and sender allowlist without exposing secrets to the client or source tree.
+- [x] Implement the Telnyx inbound webhook with Ed25519 verification, immediate acknowledgement, normalization, and durable queue handoff.
+- [x] Route P0 search requests through the existing real bounded web-search tool and dispatch final answers through the selected Telnyx adapter automatically.
+- [x] Add P0 deduplication, queue retries, compliance/failure replies, sender allowlisting, signed webhook protection, and execution observability.
+- [ ] Verify the real text-to-search-to-SMS flow once user-supplied Telnyx credentials, number, messaging profile webhook, and approved sender are configured.
+- [x] Run the final tests, type check, and production build, then save and deliver the P0 checkpoint after documenting the live-credential prerequisite.
+
+- [x] Add a Telnyx integration regression proving an inbound search request reaches the managed agent and the final reply uses TelnyxAdapter.
+- [x] Add Telnyx-specific observability coverage for messages and managed-agent runs in admin queries.
+- [x] Add Telnyx webhook coverage for allowlist rejection, rate limiting, and compliance failure replies.
+
+- [x] Add a dashboard-summary regression proving Telnyx-originated messages appear in the admin inbox query.
+- [x] Assert exact Telnyx outbound text for STOP and rate-limit replies.
+- [x] Save the completed Telnyx P0 checkpoint after the expanded verification passes.

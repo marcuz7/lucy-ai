@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "../db";
-import { lucyTwilioCredentials } from "../../drizzle/schema";
+import { lucyTelnyxCredentials, lucyTwilioCredentials } from "../../drizzle/schema";
 
 const algorithm = "aes-256-gcm";
 
@@ -66,6 +66,46 @@ export async function getTwilioCredentialsForWebhook() {
   let allowedSenders: string[] = [];
   try { allowedSenders = row?.allowedSenders ? JSON.parse(row.allowedSenders) : []; } catch { allowedSenders = []; }
   return row ? { accountSid: row.accountSid, authToken: decryptSecret(row.authTokenEncrypted), phoneNumber: row.phoneNumber, allowedSenders } : null;
+}
+
+export async function saveTelnyxCredentials(ownerUserId: number, input: { apiKey: string; publicKey: string; phoneNumber: string; allowedSenders: string[] }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not configured");
+  const allowedSenders = normalizeAllowedSenders(input.allowedSenders);
+  if (!allowedSenders.length) throw new Error("Add at least one allowlisted sender number in E.164 format");
+  await db.insert(lucyTelnyxCredentials).values({ ownerUserId, apiKeyEncrypted: encryptSecret(input.apiKey.trim()), publicKey: input.publicKey.trim(), phoneNumber: input.phoneNumber.trim(), allowedSenders: JSON.stringify(allowedSenders) }).onDuplicateKeyUpdate({
+    set: { apiKeyEncrypted: encryptSecret(input.apiKey.trim()), publicKey: input.publicKey.trim(), phoneNumber: input.phoneNumber.trim(), allowedSenders: JSON.stringify(allowedSenders), updatedAt: new Date() },
+  });
+}
+
+export async function testTelnyxCredentials(ownerUserId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not configured");
+  const rows = await db.select().from(lucyTelnyxCredentials).where(eq(lucyTelnyxCredentials.ownerUserId, ownerUserId)).limit(1);
+  const row = rows[0];
+  if (!row) return { ok: false, message: "No Telnyx credentials are saved yet." };
+  const response = await fetch("https://api.telnyx.com/v2/messaging_profiles?page[size]=1", { headers: { Authorization: `Bearer ${decryptSecret(row.apiKeyEncrypted)}` } });
+  return response.ok ? { ok: true, message: "Telnyx credentials are valid." } : { ok: false, message: "Telnyx rejected these credentials." };
+}
+
+export async function getTelnyxCredentialsForWebhook() {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(lucyTelnyxCredentials).orderBy(desc(lucyTelnyxCredentials.updatedAt)).limit(1);
+  const row = rows[0];
+  let allowedSenders: string[] = [];
+  try { allowedSenders = row?.allowedSenders ? JSON.parse(row.allowedSenders) : []; } catch { allowedSenders = []; }
+  return row ? { apiKey: decryptSecret(row.apiKeyEncrypted), publicKey: row.publicKey, phoneNumber: row.phoneNumber, allowedSenders } : null;
+}
+
+export async function getTelnyxCredentialStatus(ownerUserId: number) {
+  const db = await getDb();
+  if (!db) return { configured: false, phoneNumber: null, allowedSenders: [], allowedSendersCount: 0, publicKeyConfigured: false, updatedAt: null };
+  const rows = await db.select({ phoneNumber: lucyTelnyxCredentials.phoneNumber, publicKey: lucyTelnyxCredentials.publicKey, allowedSenders: lucyTelnyxCredentials.allowedSenders, updatedAt: lucyTelnyxCredentials.updatedAt }).from(lucyTelnyxCredentials).where(eq(lucyTelnyxCredentials.ownerUserId, ownerUserId)).limit(1);
+  const row = rows[0];
+  let allowedSenders: string[] = [];
+  try { allowedSenders = row?.allowedSenders ? JSON.parse(row.allowedSenders) : []; } catch { allowedSenders = []; }
+  return row ? { configured: true, phoneNumber: maskPhoneNumber(row.phoneNumber), allowedSenders: allowedSenders.map(maskPhoneNumber), allowedSendersCount: allowedSenders.length, publicKeyConfigured: Boolean(row.publicKey), updatedAt: row.updatedAt } : { configured: false, phoneNumber: null, allowedSenders: [], allowedSendersCount: 0, publicKeyConfigured: false, updatedAt: null };
 }
 
 export async function getTwilioCredentialStatus(ownerUserId: number) {

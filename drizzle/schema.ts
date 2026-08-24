@@ -23,6 +23,17 @@ export const lucyTwilioCredentials = mysqlTable("lucy_twilio_credentials", {
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
 
+export const lucyTelnyxCredentials = mysqlTable("lucy_telnyx_credentials", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerUserId: int("owner_user_id").notNull().unique(),
+  apiKeyEncrypted: text("api_key_encrypted").notNull(),
+  publicKey: text("public_key").notNull(),
+  phoneNumber: varchar("phone_number", { length: 32 }).notNull(),
+  allowedSenders: text("allowed_senders"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
 export const lucyConversationEvents = mysqlTable("lucy_conversation_events", {
   id: varchar("id", { length: 36 }).primaryKey(),
   chatId: varchar("chat_id", { length: 191 }).notNull(),
@@ -125,6 +136,8 @@ export type LucyMessage = typeof lucyMessages.$inferSelect;
 export type InsertLucyMessage = typeof lucyMessages.$inferInsert;
 export type LucyTwilioCredentials = typeof lucyTwilioCredentials.$inferSelect;
 export type InsertLucyTwilioCredentials = typeof lucyTwilioCredentials.$inferInsert;
+export type LucyTelnyxCredentials = typeof lucyTelnyxCredentials.$inferSelect;
+export type InsertLucyTelnyxCredentials = typeof lucyTelnyxCredentials.$inferInsert;
 export type LucyJob = typeof lucyJobs.$inferSelect;
 export type InsertLucyJob = typeof lucyJobs.$inferInsert;
 export type LucyAgentRun = typeof lucyAgentRuns.$inferSelect;

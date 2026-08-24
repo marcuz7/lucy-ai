@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { getTwilioCredentialStatus, saveTwilioCredentials, testTwilioCredentials } from "./lucy/credentials";
+import { getTelnyxCredentialStatus, getTwilioCredentialStatus, saveTelnyxCredentials, saveTwilioCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
 import { getAgentRuns, getDashboardSummary, getQueueJobs } from "./lucy/dashboard";
 import { requestAgentRunCancellation } from "./lucy/agentPersistence";
 import { getMessageDetail } from "./lucy/history";
@@ -28,6 +28,20 @@ export const appRouter = router({
     agentRuns: adminProcedure.query(() => getAgentRuns()),
     cancelAgentRun: adminProcedure.input(z.object({ runId: z.string().uuid() })).mutation(async ({ input }) => ({ accepted: await requestAgentRunCancellation(input.runId) })),
     messageDetail: adminProcedure.input(z.object({ messageId: z.string().min(1).max(191) })).query(({ input }) => getMessageDetail(input.messageId)),
+  }),
+
+  telnyx: router({
+    status: adminProcedure.query(({ ctx }) => getTelnyxCredentialStatus(ctx.user.id)),
+    test: adminProcedure.mutation(({ ctx }) => testTelnyxCredentials(ctx.user.id)),
+    save: adminProcedure.input(z.object({
+      apiKey: z.string().min(8).max(512),
+      publicKey: z.string().min(16).max(2048),
+      phoneNumber: z.string().regex(/^\\+[1-9]\\d{7,14}$/, "Use E.164 format, for example +15551234567"),
+      allowedSenders: z.array(z.string().regex(/^\\+[1-9]\\d{7,14}$/, "Use E.164 format, for example +15551234567")).min(1, "Add at least one allowlisted sender"),
+    })).mutation(async ({ ctx, input }) => {
+      await saveTelnyxCredentials(ctx.user.id, input);
+      return { success: true } as const;
+    }),
   }),
 
   twilio: router({

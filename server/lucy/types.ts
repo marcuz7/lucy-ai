@@ -1,4 +1,4 @@
-export type Channel = "twilio-sms" | "imessage-relay" | "rcs";
+export type Channel = "twilio-sms" | "telnyx-sms" | "imessage-relay" | "rcs";
 
 export type MediaAttachment = {
   url: string;

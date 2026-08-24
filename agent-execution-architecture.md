@@ -38,3 +38,13 @@ After the managed-agent and allowlist pass, the public launch page remains visua
 The hardened desktop admin verification shows the new execution-runs surface does not disturb the existing dashboard layout, and the Twilio settings page presents the approved sender-number control within the existing security-focused form. The dashboard API batch returns 200 for summary, jobs, and agentRuns; auth.me returns the promoted admin; and Twilio status returns a stable unconfigured response with zero approved senders until the user saves credentials.
 
 The final mobile verification confirms the admin dashboard stacks its metrics and controls without clipping, while the Twilio allowlist form remains legible with explanatory copy and a full-width save action. Active-run cancellation controls are present only on cancellable statuses; terminal and limit-reached statuses remain non-destructive and filterable.
+
+## Telnyx P0 provider findings
+
+The official Telnyx messaging documentation confirms that inbound SMS/MMS arrives as an HTTPS POST event with `data.event_type` set to `message.received`, and the message payload includes sender, destination, text, message ID, and optional media. Telnyx requires a `2xx` response within 2 seconds and retries failed delivery, so Lucy must acknowledge immediately and enqueue work rather than execute the agent inside the webhook. Telnyx signs webhook requests with Ed25519 using the `telnyx-signature-ed25519` and `telnyx-timestamp` headers; production handling must verify the signature against the account public key. Outbound SMS uses `POST https://api.telnyx.com/v2/messages` with bearer authentication and E.164 `from`, `to`, and `text` fields. Telnyx numbers must be assigned to a messaging profile with a configured webhook.
+
+References: [5] https://developers.telnyx.com/docs/messaging/messages/receiving-webhooks — Receiving Webhooks for Messaging; [6] https://developers.telnyx.com/docs/messaging/messages/receive-message — Receive SMS and MMS Messages; [7] https://developers.telnyx.com/docs/messaging/messages/send-message — Send Your First Message.
+
+## P0 UI verification
+
+The public landing page, existing admin dashboard, and new `/admin/telnyx` configuration route render successfully at desktop width. The mobile route remains readable: the Telnyx key, Ed25519 public key, phone number, approved sender list, and webhook instructions stack vertically, while the dashboard keeps its provider links, queue metrics, inbox, and managed-agent activity visible without horizontal overflow.
