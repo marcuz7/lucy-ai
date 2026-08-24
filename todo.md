@@ -181,3 +181,10 @@
 - [x] Restrict Twilio, Telnyx, LLM, and Tavily credential read/save/test operations to the designated super-admin owner.
 - [x] Update settings UI and navigation to distinguish super-admin secret management from ordinary admin monitoring.
 - [x] Add super-admin authorization and secret-redaction regression coverage, verify the app, and save a checkpoint.
+
+- [x] Diagnose and restore the preview server after mobile Safari reported that the server stopped responding; verify the public and admin routes afterward.
+
+- [x] Replace JWT-derived provider credential encryption with a dedicated versioned master-key envelope while preserving legacy ciphertext decryption.
+- [x] Configure and validate the production `LUCY_CREDENTIALS_ENCRYPTION_KEY` secret, add rotation/migration regression coverage, and save a checkpoint.
+
+- [x] Reissue a usable dedicated encryption-key request card after the previous card was unavailable, then validate the submitted value.

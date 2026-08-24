@@ -4,26 +4,84 @@ import { getDb } from "../db";
 import { lucyLlmCredentials, lucySearchCredentials, lucyTelnyxCredentials, lucyTwilioCredentials } from "../../drizzle/schema";
 import { resolveLlmSettings } from "../../shared/llm";
 
-const algorithm = "aes-256-gcm";
+const algorithm = "aes-256-gcm" as const;
+const formatVersion = "v1";
+const associatedData = Buffer.from("lucyai/provider-credential:v1", "utf8");
 
-function key() {
-  return crypto.createHash("sha256").update(process.env.JWT_SECRET || "lucy-local-development-key").digest();
+function decodeKey(encoded: string | undefined, name: string) {
+  if (!encoded) throw new Error(`${name} is not configured`);
+  const value = Buffer.from(encoded, "base64");
+  if (value.length !== 32) throw new Error(`${name} must decode to exactly 32 bytes`);
+  return value;
+}
+
+function dedicatedKey() {
+  return decodeKey(process.env.LUCY_CREDENTIALS_ENCRYPTION_KEY, "LUCY_CREDENTIALS_ENCRYPTION_KEY");
+}
+
+function previousDedicatedKey() {
+  const encoded = process.env.LUCY_CREDENTIALS_ENCRYPTION_KEY_PREVIOUS;
+  return encoded ? decodeKey(encoded, "LUCY_CREDENTIALS_ENCRYPTION_KEY_PREVIOUS") : null;
+}
+
+function legacyKey() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET is not configured for legacy credential migration");
+  return crypto.createHash("sha256").update(secret).digest();
 }
 
 export function encryptSecret(value: string) {
+  if (!value) throw new Error("Cannot encrypt an empty credential");
   const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv(algorithm, key(), iv);
+  const cipher = crypto.createCipheriv(algorithm, dedicatedKey(), iv);
+  cipher.setAAD(associatedData);
   const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
   const tag = cipher.getAuthTag();
-  return `${iv.toString("base64url")}.${tag.toString("base64url")}.${encrypted.toString("base64url")}`;
+  return `${formatVersion}.${iv.toString("base64url")}.${tag.toString("base64url")}.${encrypted.toString("base64url")}`;
+}
+
+function decryptVersioned(value: string, encryptionKey: Buffer) {
+  const [version, ivText, tagText, encryptedText] = value.split(".");
+  if (version !== formatVersion || !ivText || !tagText || !encryptedText) throw new Error("Invalid encrypted provider credential");
+  const iv = Buffer.from(ivText, "base64url");
+  const tag = Buffer.from(tagText, "base64url");
+  const encrypted = Buffer.from(encryptedText, "base64url");
+  if (iv.length !== 12 || tag.length !== 16 || !encrypted.length) throw new Error("Invalid encrypted provider credential");
+  const decipher = crypto.createDecipheriv(algorithm, encryptionKey, iv);
+  decipher.setAAD(associatedData);
+  decipher.setAuthTag(tag);
+  return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
 }
 
 export function decryptSecret(value: string) {
-  const [ivText, tagText, encryptedText] = value.split(".");
-  if (!ivText || !tagText || !encryptedText) throw new Error("Invalid encrypted Twilio credential");
-  const decipher = crypto.createDecipheriv(algorithm, key(), Buffer.from(ivText, "base64url"));
-  decipher.setAuthTag(Buffer.from(tagText, "base64url"));
-  return Buffer.concat([decipher.update(Buffer.from(encryptedText, "base64url")), decipher.final()]).toString("utf8");
+  const parts = value.split(".");
+  if (parts[0] !== formatVersion) {
+    const [ivText, tagText, encryptedText] = parts;
+    if (!ivText || !tagText || !encryptedText) throw new Error("Invalid encrypted provider credential");
+    const iv = Buffer.from(ivText, "base64url");
+    const tag = Buffer.from(tagText, "base64url");
+    const encrypted = Buffer.from(encryptedText, "base64url");
+    if (iv.length !== 12 || tag.length !== 16 || !encrypted.length) throw new Error("Invalid encrypted provider credential");
+    const decipher = crypto.createDecipheriv(algorithm, legacyKey(), iv);
+    decipher.setAuthTag(tag);
+    return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
+  }
+
+  const activeKey = dedicatedKey();
+  const previousKey = previousDedicatedKey();
+  const keys = previousKey ? [activeKey, previousKey] : [activeKey];
+  for (const encryptionKey of keys) {
+    try {
+      return decryptVersioned(value, encryptionKey);
+    } catch {
+      // Try the next configured key during a controlled rotation window.
+    }
+  }
+  throw new Error("Unable to decrypt provider credential with the active key ring");
+}
+
+export function reEncryptSecret(value: string) {
+  return encryptSecret(decryptSecret(value));
 }
 
 export function normalizeAllowedSenders(values: string[]) {
