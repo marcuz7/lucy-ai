@@ -110,6 +110,14 @@ export function maskAccountSid(value: string) {
   return value.length > 6 ? `${value.slice(0, 2)}••••••${value.slice(-4)}` : "••••";
 }
 
+export function twilioCredentialFailureMessage(status: number) {
+  if (status === 401 || status === 403) return "Twilio rejected the Account SID/Auth Token pair. Copy both values from Twilio Console and save them again.";
+  if (status === 404) return "Twilio could not find this Account SID. Check that it is the Account SID from Twilio Console, not an API key or phone number.";
+  if (status === 429) return "Twilio rate-limited the test. Wait briefly and try again.";
+  if (status >= 500) return "Twilio is temporarily unavailable. Try the connection test again later.";
+  return "Twilio rejected the connection test. Check the Account SID and Auth Token.";
+}
+
 export async function testTwilioCredentials(ownerUserId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database is not configured");
@@ -118,7 +126,7 @@ export async function testTwilioCredentials(ownerUserId: number) {
   if (!row) return { ok: false, message: "No Twilio credentials are saved yet." };
   const auth = Buffer.from(`${row.accountSid}:${decryptSecret(row.authTokenEncrypted)}`).toString("base64");
   const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${row.accountSid}.json`, { headers: { Authorization: `Basic ${auth}` } });
-  return response.ok ? { ok: true, message: "Twilio credentials are valid." } : { ok: false, message: "Twilio rejected these credentials." };
+  return response.ok ? { ok: true, message: "Twilio credentials are valid." } : { ok: false, message: twilioCredentialFailureMessage(response.status) };
 }
 
 export async function getTwilioCredentialsForWebhook() {

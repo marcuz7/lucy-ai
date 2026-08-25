@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decryptSecret, encryptSecret, isE164PhoneNumber, maskAccountSid, maskPhoneNumber, normalizeAllowedSenders, summarizeLlmCredential } from "./credentials";
+import { decryptSecret, encryptSecret, isE164PhoneNumber, maskAccountSid, maskPhoneNumber, normalizeAllowedSenders, summarizeLlmCredential, twilioCredentialFailureMessage } from "./credentials";
 
 describe("Lucy Twilio credentials", () => {
   it("encrypts and decrypts a token without storing the plaintext", () => {
@@ -7,6 +7,12 @@ describe("Lucy Twilio credentials", () => {
     const encrypted = encryptSecret(token);
     expect(encrypted).not.toContain(token);
     expect(decryptSecret(encrypted)).toBe(token);
+  });
+
+  it("classifies Twilio credential-test failures without exposing secrets", () => {
+    expect(twilioCredentialFailureMessage(401)).toContain("Account SID/Auth Token pair");
+    expect(twilioCredentialFailureMessage(404)).toContain("could not find this Account SID");
+    expect(twilioCredentialFailureMessage(503)).toContain("temporarily unavailable");
   });
 
   it("masks account and phone identifiers", () => {
