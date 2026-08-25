@@ -226,3 +226,5 @@
 - [x] Add optional Redis connection configuration to protected Super-admin settings, with encrypted server-side storage, masked status, validation, and fallback when unset.
 
 - [x] Fix the escaped E.164 regex in Twilio and Telnyx settings so valid numbers such as +84837841663 pass server and client validation, with regression coverage.
+
+- [x] Diagnose the Tavily connection-test rejection and fix any request or validation defect while preserving safe fallback and secret redaction.

@@ -242,8 +242,8 @@ export async function testTavilyCredentials(ownerUserId: number) {
   if (!row) return { ok: false, message: "No Tavily credentials are saved yet." };
   const response = await fetch("https://api.tavily.com/search", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ api_key: decryptSecret(row.apiKeyEncrypted), query: "LucyAi connection test", max_results: 1 }),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${decryptSecret(row.apiKeyEncrypted)}` },
+    body: JSON.stringify({ query: "LucyAi connection test", max_results: 1 }),
   });
   return response.ok ? { ok: true, message: "Tavily search is reachable." } : { ok: false, message: "Tavily rejected this API key. Check the key and try again." };
 }

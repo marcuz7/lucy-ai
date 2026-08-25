@@ -19,7 +19,11 @@ describe("Tavily-backed public web lookup", () => {
     const parsed = JSON.parse(output);
 
     expect(parsed).toEqual({ query: "latest AI news", provider: "tavily", results: [{ title: "AI news", url: "https://example.com/ai", snippet: "A current summary." }] });
-    expect(fetchSpy).toHaveBeenCalledWith("https://api.tavily.com/search", expect.objectContaining({ method: "POST" }));
+    expect(fetchSpy).toHaveBeenCalledWith("https://api.tavily.com/search", expect.objectContaining({
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer tvly-private-key" },
+      body: JSON.stringify({ query: "latest AI news", max_results: 3, search_depth: "basic" }),
+    }));
     expect(output).not.toContain("tvly-private-key");
   });
 });
