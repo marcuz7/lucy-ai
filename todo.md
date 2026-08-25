@@ -224,3 +224,5 @@
 - [x] Add Redis-backed short-term memory with a 24-hour TTL and 20-turn cap, preserve MySQL durability, and verify fallback behavior when Redis is unavailable.
 
 - [x] Add optional Redis connection configuration to protected Super-admin settings, with encrypted server-side storage, masked status, validation, and fallback when unset.
+
+- [x] Fix the escaped E.164 regex in Twilio and Telnyx settings so valid numbers such as +84837841663 pass server and client validation, with regression coverage.

@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, isSuperAdminUser, publicProcedure, router, superAdminProcedure } from "./_core/trpc";
 import { z } from "zod";
-import { getLlmCredentialStatus, getRedisCredentialStatus, getTavilyCredentialStatus, getTelnyxCredentialStatus, getTwilioCredentialStatus, saveLlmCredentials, saveRedisCredentials, saveTavilyCredentials, saveTelnyxCredentials, saveTwilioCredentials, testLlmCredentials, testRedisCredentials, testTavilyCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
+import { getLlmCredentialStatus, getRedisCredentialStatus, getTavilyCredentialStatus, getTelnyxCredentialStatus, getTwilioCredentialStatus, isE164PhoneNumber, saveLlmCredentials, saveRedisCredentials, saveTavilyCredentials, saveTelnyxCredentials, saveTwilioCredentials, testLlmCredentials, testRedisCredentials, testTavilyCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
 import { getAgentRuns, getDashboardSummary, getQueueJobs } from "./lucy/dashboard";
 import { requestAgentRunCancellation } from "./lucy/agentPersistence";
 import { getMessageDetail } from "./lucy/history";
@@ -36,8 +36,8 @@ export const appRouter = router({
     save: superAdminProcedure.input(z.object({
       apiKey: z.string().min(8).max(512),
       publicKey: z.string().min(16).max(2048),
-      phoneNumber: z.string().regex(/^\\+[1-9]\\d{7,14}$/, "Use E.164 format, for example +15551234567"),
-      allowedSenders: z.array(z.string().regex(/^\\+[1-9]\\d{7,14}$/, "Use E.164 format, for example +15551234567")).min(1, "Add at least one allowlisted sender"),
+      phoneNumber: z.string().refine(isE164PhoneNumber, "Use E.164 format, for example +15551234567"),
+      allowedSenders: z.array(z.string().refine(isE164PhoneNumber, "Use E.164 format, for example +15551234567")).min(1, "Add at least one allowlisted sender"),
     })).mutation(async ({ ctx, input }) => {
       await saveTelnyxCredentials(ctx.user.id, input);
       return { success: true } as const;
@@ -82,8 +82,8 @@ export const appRouter = router({
     save: superAdminProcedure.input(z.object({
       accountSid: z.string().min(10).max(64),
       authToken: z.string().min(8).max(256),
-      phoneNumber: z.string().regex(/^\\+[1-9]\\d{7,14}$/, "Use E.164 format, for example +15551234567"),
-      allowedSenders: z.array(z.string().regex(/^\\+[1-9]\\d{7,14}$/, "Use E.164 format, for example +15551234567")).min(1, "Add at least one allowlisted sender"),
+      phoneNumber: z.string().refine(isE164PhoneNumber, "Use E.164 format, for example +15551234567"),
+      allowedSenders: z.array(z.string().refine(isE164PhoneNumber, "Use E.164 format, for example +15551234567")).min(1, "Add at least one allowlisted sender"),
     })).mutation(async ({ ctx, input }) => {
       await saveTwilioCredentials(ctx.user.id, input);
       return { success: true } as const;

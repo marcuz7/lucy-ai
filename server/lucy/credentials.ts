@@ -84,8 +84,12 @@ export function reEncryptSecret(value: string) {
   return encryptSecret(decryptSecret(value));
 }
 
+export function isE164PhoneNumber(value: string) {
+  return /^\+[1-9]\d{7,14}$/.test(value.trim());
+}
+
 export function normalizeAllowedSenders(values: string[]) {
-  return Array.from(new Set(values.flatMap(value => value.split(/[\s,]+/)).map(value => value.trim()).filter(Boolean))).filter(value => /^\+[1-9]\d{7,14}$/.test(value));
+  return Array.from(new Set(values.flatMap(value => value.split(/[\s,]+/)).map(value => value.trim()).filter(Boolean))).filter(isE164PhoneNumber);
 }
 
 export async function saveTwilioCredentials(ownerUserId: number, input: { accountSid: string; authToken: string; phoneNumber: string; allowedSenders: string[] }) {
