@@ -217,3 +217,8 @@
 - [x] Diagnose why the signed-in admin does not see the Super-admin role and provide a safe exact-identity recovery path.
 
 - [x] Fix super-admin recognition so the exact configured email `marcuz7@gmail.com` is sufficient with the admin role, without requiring a mismatched owner ID.
+
+- [x] Verify the existing conversation memory implementation against the 24-hour Redis / recent-turn blueprint and document any differences: current memory is bounded in-process with 12 working turns and 200 retained turns; MySQL stores durable conversation/audit records, but Redis/24-hour TTL is not currently used.
+- [x] Verify the existing inbound webhook and asynchronous worker flow against the immediate-acknowledgment blueprint and document any live provider setup remaining: signed Twilio/Telnyx webhooks acknowledge immediately and hand off to the durable MySQL queue; live carrier credentials/webhook setup remain.
+
+- [x] Add Redis-backed short-term memory with a 24-hour TTL and 20-turn cap, preserve MySQL durability, and verify fallback behavior when Redis is unavailable.
