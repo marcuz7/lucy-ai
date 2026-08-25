@@ -69,6 +69,25 @@ function LlmSection() {
   </section>;
 }
 
+function RedisSection() {
+  const status = trpc.redis.status.useQuery();
+  const save = trpc.redis.save.useMutation({ onSuccess: () => status.refetch() });
+  const test = trpc.redis.test.useMutation();
+  const [redisUrl, setRedisUrl] = useState("");
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    save.mutate({ redisUrl });
+  };
+
+  return <section className="provider-section">
+    <div className="provider-heading"><div><span className="eyebrow">MEMORY · OPTIONAL</span><h2>Redis short-term memory</h2><p>Keep Lucy’s recent conversation context for 24 hours.</p></div><span className="provider-badge">MEMORY</span></div>
+    <StatusNote configured={status.data?.configured}>Redis configured · {status.data?.tls ? "TLS enabled" : "unencrypted connection"} · URL encrypted</StatusNote>
+    <form onSubmit={submit} className="provider-form"><label>Redis connection URL<input type="password" value={redisUrl} onChange={event => setRedisUrl(event.target.value)} placeholder={status.data?.configured ? "Enter a new URL to rotate it" : "rediss://:password@host:6379"} required /><small className="field-help">Optional. Prefer <code>rediss://</code> for hosted Redis. Lucy stores the URL encrypted and never returns it to the browser.</small></label><button className="pill-button settings-button" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save Redis settings"}</button>{save.isSuccess && <p className="form-success"><ShieldCheck size={17} /> Redis settings saved securely.</p>}{save.error && <p className="form-error">Could not save Redis settings. Use a valid redis:// or rediss:// URL.</p>}</form>
+    <div className="test-row"><button className="secondary-button" disabled={test.isPending || !status.data?.configured} onClick={() => test.mutate()}>{test.isPending ? "Testing…" : "Test Redis connection"}</button>{test.data && <span className={test.data.ok ? "test-ok" : "test-bad"}>{test.data.message}</span>}{test.error && <span className="test-bad">Redis connection failed. Check the URL and network access.</span>}</div>
+    <div className="setup-note"><strong>24-hour memory</strong><span>Lucy keeps a 12-turn working window and the latest 20 turns in Redis. Both expire after 24 hours. If Redis is unset or unavailable, Lucy uses the safe bounded fallback and keeps durable MySQL records.</span></div>
+  </section>;
+}
+
 function TwilioSection() {
   const status = trpc.twilio.status.useQuery();
   const save = trpc.twilio.save.useMutation({ onSuccess: () => status.refetch() });
@@ -114,5 +133,5 @@ function TelnyxSection() {
 }
 
 export default function AdminProviderSettings() {
-  return <ProtectedState><main className="settings-shell"><div className="settings-card wide provider-settings-card"><Link href="/admin" className="back-link"><ArrowLeft size={16} /> Back to dashboard</Link><div className="settings-title"><div className="settings-icon"><LockKeyhole /></div><div><span className="eyebrow">PROTECTED SUPER-ADMIN SETTINGS</span><h1>Provider secrets</h1></div></div><p className="settings-intro">Set up every Lucy messaging secret from one page. Credentials are encrypted before storage, masked in status responses, and never returned to the browser. Only the designated super-admin owner can view or change these settings.</p><div className="security-banner"><ShieldCheck size={18} /><div><strong>Super-admin only and encrypted</strong><span>Use your Lucy administrator account. Never paste these credentials into chat or public code.</span></div></div><SearchSection /><LlmSection /><TwilioSection /><TelnyxSection /></div></main></ProtectedState>;
+  return <ProtectedState><main className="settings-shell"><div className="settings-card wide provider-settings-card"><Link href="/admin" className="back-link"><ArrowLeft size={16} /> Back to dashboard</Link><div className="settings-title"><div className="settings-icon"><LockKeyhole /></div><div><span className="eyebrow">PROTECTED SUPER-ADMIN SETTINGS</span><h1>Provider secrets</h1></div></div><p className="settings-intro">Set up every Lucy messaging secret from one page. Credentials are encrypted before storage, masked in status responses, and never returned to the browser. Only the designated super-admin owner can view or change these settings.</p><div className="security-banner"><ShieldCheck size={18} /><div><strong>Super-admin only and encrypted</strong><span>Use your Lucy administrator account. Never paste these credentials into chat or public code.</span></div></div><SearchSection /><LlmSection /><RedisSection /><TwilioSection /><TelnyxSection /></div></main></ProtectedState>;
 }

@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "../db";
-import { lucyLlmCredentials, lucySearchCredentials, lucyTelnyxCredentials, lucyTwilioCredentials } from "../../drizzle/schema";
+import { lucyLlmCredentials, lucyRedisCredentials, lucySearchCredentials, lucyTelnyxCredentials, lucyTwilioCredentials } from "../../drizzle/schema";
 import { resolveLlmSettings } from "../../shared/llm";
 
 const algorithm = "aes-256-gcm" as const;
@@ -250,6 +250,60 @@ export async function getTavilyApiKeyForAgent() {
   const rows = await db.select().from(lucySearchCredentials).orderBy(desc(lucySearchCredentials.updatedAt)).limit(1);
   const row = rows[0];
   return row ? decryptSecret(row.apiKeyEncrypted) : null;
+}
+
+export function validateRedisUrl(value: string) {
+  const normalized = value.trim();
+  if (!normalized || normalized.length > 1024) throw new Error("Redis URL is required");
+  const parsed = new URL(normalized);
+  if (parsed.protocol !== "redis:" && parsed.protocol !== "rediss:") throw new Error("Redis URL must use redis:// or rediss://");
+  return normalized;
+}
+
+export async function saveRedisCredentials(ownerUserId: number, redisUrl: string) {
+  const normalized = validateRedisUrl(redisUrl);
+  const db = await getDb();
+  if (!db) throw new Error("Database is not configured");
+  await db.insert(lucyRedisCredentials).values({ ownerUserId, redisUrlEncrypted: encryptSecret(normalized) }).onDuplicateKeyUpdate({
+    set: { redisUrlEncrypted: encryptSecret(normalized), updatedAt: new Date() },
+  });
+}
+
+export async function getRedisCredentialStatus(ownerUserId: number) {
+  const db = await getDb();
+  if (!db) return { configured: false, tls: false, updatedAt: null };
+  const rows = await db.select({ redisUrlEncrypted: lucyRedisCredentials.redisUrlEncrypted, updatedAt: lucyRedisCredentials.updatedAt }).from(lucyRedisCredentials).where(eq(lucyRedisCredentials.ownerUserId, ownerUserId)).limit(1);
+  const row = rows[0];
+  if (!row) return { configured: false, tls: false, updatedAt: null };
+  const url = decryptSecret(row.redisUrlEncrypted);
+  return { configured: true, tls: url.startsWith("rediss://"), updatedAt: row.updatedAt };
+}
+
+export async function testRedisCredentials(ownerUserId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not configured");
+  const rows = await db.select().from(lucyRedisCredentials).where(eq(lucyRedisCredentials.ownerUserId, ownerUserId)).limit(1);
+  const row = rows[0];
+  if (!row) return { ok: false, message: "No Redis URL is saved yet." };
+  const { createClient } = await import("redis");
+  const client = createClient({ url: decryptSecret(row.redisUrlEncrypted) });
+  try {
+    await client.connect();
+    await client.ping();
+    return { ok: true, message: "Redis is reachable." };
+  } catch {
+    return { ok: false, message: "Redis could not be reached. Check the URL and network access." };
+  } finally {
+    if (client.isOpen) await client.quit().catch(() => undefined);
+  }
+}
+
+export async function getRedisUrlForMemory() {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(lucyRedisCredentials).orderBy(desc(lucyRedisCredentials.updatedAt)).limit(1);
+  const row = rows[0];
+  return row ? decryptSecret(row.redisUrlEncrypted) : null;
 }
 
 export async function getTwilioCredentialStatus(ownerUserId: number) {

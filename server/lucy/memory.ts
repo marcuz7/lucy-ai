@@ -1,4 +1,5 @@
 import { createClient, type RedisClientType } from "redis";
+import { getRedisUrlForMemory } from "./credentials";
 import type { InboundMessage, MemorySnapshot, MemoryStore, MemoryTurn, SpeakDecision } from "./types";
 
 export const SHORT_TERM_MEMORY_TTL_SECONDS = 86_400;
@@ -57,7 +58,7 @@ type RedisClient = RedisClientType;
 let redisPromise: Promise<RedisClient | null> | null = null;
 
 async function getRedisClient(): Promise<RedisClient | null> {
-  const url = process.env.REDIS_URL?.trim();
+  const url = process.env.REDIS_URL?.trim() || await getRedisUrlForMemory();
   if (!url) return null;
   if (!redisPromise) {
     const client = createClient({ url });
@@ -143,4 +144,4 @@ export class RedisMemoryStore implements MemoryStore {
   }
 }
 
-export const memoryStore: MemoryStore = process.env.REDIS_URL ? new RedisMemoryStore() : new InMemoryMemoryStore();
+export const memoryStore: MemoryStore = new RedisMemoryStore();

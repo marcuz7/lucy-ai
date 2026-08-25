@@ -222,3 +222,5 @@
 - [x] Verify the existing inbound webhook and asynchronous worker flow against the immediate-acknowledgment blueprint and document any live provider setup remaining: signed Twilio/Telnyx webhooks acknowledge immediately and hand off to the durable MySQL queue; live carrier credentials/webhook setup remain.
 
 - [x] Add Redis-backed short-term memory with a 24-hour TTL and 20-turn cap, preserve MySQL durability, and verify fallback behavior when Redis is unavailable.
+
+- [x] Add optional Redis connection configuration to protected Super-admin settings, with encrypted server-side storage, masked status, validation, and fallback when unset.

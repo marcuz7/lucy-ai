@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, isSuperAdminUser, publicProcedure, router, superAdminProcedure } from "./_core/trpc";
 import { z } from "zod";
-import { getLlmCredentialStatus, getTavilyCredentialStatus, getTelnyxCredentialStatus, getTwilioCredentialStatus, saveLlmCredentials, saveTavilyCredentials, saveTelnyxCredentials, saveTwilioCredentials, testLlmCredentials, testTavilyCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
+import { getLlmCredentialStatus, getRedisCredentialStatus, getTavilyCredentialStatus, getTelnyxCredentialStatus, getTwilioCredentialStatus, saveLlmCredentials, saveRedisCredentials, saveTavilyCredentials, saveTelnyxCredentials, saveTwilioCredentials, testLlmCredentials, testRedisCredentials, testTavilyCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
 import { getAgentRuns, getDashboardSummary, getQueueJobs } from "./lucy/dashboard";
 import { requestAgentRunCancellation } from "./lucy/agentPersistence";
 import { getMessageDetail } from "./lucy/history";
@@ -40,6 +40,15 @@ export const appRouter = router({
       allowedSenders: z.array(z.string().regex(/^\\+[1-9]\\d{7,14}$/, "Use E.164 format, for example +15551234567")).min(1, "Add at least one allowlisted sender"),
     })).mutation(async ({ ctx, input }) => {
       await saveTelnyxCredentials(ctx.user.id, input);
+      return { success: true } as const;
+    }),
+  }),
+
+  redis: router({
+    status: superAdminProcedure.query(({ ctx }) => getRedisCredentialStatus(ctx.user.id)),
+    test: superAdminProcedure.mutation(({ ctx }) => testRedisCredentials(ctx.user.id)),
+    save: superAdminProcedure.input(z.object({ redisUrl: z.string().min(1).max(1024) })).mutation(async ({ ctx, input }) => {
+      await saveRedisCredentials(ctx.user.id, input.redisUrl);
       return { success: true } as const;
     }),
   }),
