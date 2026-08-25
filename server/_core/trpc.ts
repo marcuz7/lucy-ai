@@ -50,8 +50,6 @@ export const isSuperAdminUser = (
 ): user is NonNullable<TrpcContext["user"]> => Boolean(
   user
   && user.role === "admin"
-  && ENV.ownerOpenId
-  && user.openId === ENV.ownerOpenId
   && ENV.superAdminEmail
   && user.email?.trim().toLowerCase() === ENV.superAdminEmail,
 );

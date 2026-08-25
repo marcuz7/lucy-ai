@@ -39,6 +39,12 @@ describe("super-admin secret access", () => {
     await expect(caller.llm.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.search.status()).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
+
+  it("allows the exact configured super-admin email even when the open ID differs", async () => {
+    const caller = appRouter.createCaller(context("admin", "current-google-open-id", process.env.LUCY_SUPER_ADMIN_EMAIL));
+    await expect(caller.llm.status()).resolves.toMatchObject({ configured: false });
+    await expect(caller.search.status()).resolves.toMatchObject({ configured: false });
+  });
 });
 
 describe("admin Tavily search access", () => {

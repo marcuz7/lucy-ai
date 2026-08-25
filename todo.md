@@ -213,3 +213,7 @@
 - [x] Fix Google OAuth role assignment and make the authenticated role visible in the navigation without weakening super-admin authorization.
 - [x] Update the hero section with Lucy AI branding, a relevant tagline, and revised description copy.
 - [x] Add an authenticated profile dropdown with user identity, role indicator, admin links, and a clear sign-out action.
+
+- [x] Diagnose why the signed-in admin does not see the Super-admin role and provide a safe exact-identity recovery path.
+
+- [x] Fix super-admin recognition so the exact configured email `marcuz7@gmail.com` is sufficient with the admin role, without requiring a mismatched owner ID.
