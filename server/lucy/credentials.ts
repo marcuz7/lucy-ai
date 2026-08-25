@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "../db";
-import { lucyLlmCredentials, lucyRedisCredentials, lucySearchCredentials, lucyTelnyxCredentials, lucyTwilioCredentials } from "../../drizzle/schema";
+import { lucyAndroidGatewayCredentials, lucyLlmCredentials, lucyRedisCredentials, lucySearchCredentials, lucyTelnyxCredentials, lucyTwilioCredentials } from "../../drizzle/schema";
 import { resolveLlmSettings } from "../../shared/llm";
 
 const algorithm = "aes-256-gcm" as const;
@@ -316,6 +316,74 @@ export async function getRedisUrlForMemory() {
   const rows = await db.select().from(lucyRedisCredentials).orderBy(desc(lucyRedisCredentials.updatedAt)).limit(1);
   const row = rows[0];
   return row ? decryptSecret(row.redisUrlEncrypted) : null;
+}
+
+export function validateAndroidGatewayUrl(value: string) {
+  const normalized = value.trim().replace(/\/+$/, "");
+  if (!normalized || normalized.length > 1024) throw new Error("Android gateway URL is required");
+  const parsed = new URL(normalized);
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("Android gateway URL must use http:// or https://");
+  if (process.env.NODE_ENV === "production" && parsed.protocol !== "https:") throw new Error("Android gateway URL must use HTTPS in production");
+  return normalized;
+}
+
+function validateAndroidGatewaySecret(value: string, label: string) {
+  const normalized = value.trim();
+  if (normalized.length < 1 || normalized.length > 512) throw new Error(`${label} is required`);
+  return normalized;
+}
+
+export async function saveAndroidGatewayCredentials(ownerUserId: number, input: { apiUrl: string; username: string; password: string; webhookToken: string; phoneNumber: string; allowedSenders: string[] }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not configured");
+  const apiUrl = validateAndroidGatewayUrl(input.apiUrl);
+  const username = validateAndroidGatewaySecret(input.username, "Android gateway username");
+  const password = validateAndroidGatewaySecret(input.password, "Android gateway password");
+  const webhookToken = validateAndroidGatewaySecret(input.webhookToken, "Android gateway webhook token");
+  if (!isE164PhoneNumber(input.phoneNumber)) throw new Error("Use E.164 format, for example +15551234567");
+  const allowedSenders = normalizeAllowedSenders(input.allowedSenders);
+  if (!allowedSenders.length) throw new Error("Add at least one allowlisted sender number in E.164 format");
+  await db.insert(lucyAndroidGatewayCredentials).values({ ownerUserId, apiUrl, usernameEncrypted: encryptSecret(username), passwordEncrypted: encryptSecret(password), webhookTokenEncrypted: encryptSecret(webhookToken), phoneNumber: input.phoneNumber.trim(), allowedSenders: JSON.stringify(allowedSenders) }).onDuplicateKeyUpdate({
+    set: { apiUrl, usernameEncrypted: encryptSecret(username), passwordEncrypted: encryptSecret(password), webhookTokenEncrypted: encryptSecret(webhookToken), phoneNumber: input.phoneNumber.trim(), allowedSenders: JSON.stringify(allowedSenders), updatedAt: new Date() },
+  });
+}
+
+export async function getAndroidGatewayCredentialStatus(ownerUserId: number) {
+  const db = await getDb();
+  if (!db) return { configured: false, apiHost: null, phoneNumber: null, allowedSenders: [], allowedSendersCount: 0, updatedAt: null };
+  const rows = await db.select({ apiUrl: lucyAndroidGatewayCredentials.apiUrl, phoneNumber: lucyAndroidGatewayCredentials.phoneNumber, allowedSenders: lucyAndroidGatewayCredentials.allowedSenders, updatedAt: lucyAndroidGatewayCredentials.updatedAt }).from(lucyAndroidGatewayCredentials).where(eq(lucyAndroidGatewayCredentials.ownerUserId, ownerUserId)).limit(1);
+  const row = rows[0];
+  if (!row) return { configured: false, apiHost: null, phoneNumber: null, allowedSenders: [], allowedSendersCount: 0, updatedAt: null };
+  let allowedSenders: string[] = [];
+  try { allowedSenders = row.allowedSenders ? JSON.parse(row.allowedSenders) : []; } catch { allowedSenders = []; }
+  return { configured: true, apiHost: new URL(row.apiUrl).host, phoneNumber: maskPhoneNumber(row.phoneNumber), allowedSenders: allowedSenders.map(maskPhoneNumber), allowedSendersCount: allowedSenders.length, updatedAt: row.updatedAt };
+}
+
+export async function getAndroidGatewayCredentialsForRuntime() {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(lucyAndroidGatewayCredentials).orderBy(desc(lucyAndroidGatewayCredentials.updatedAt)).limit(1);
+  const row = rows[0];
+  if (!row) return null;
+  let allowedSenders: string[] = [];
+  try { allowedSenders = row.allowedSenders ? JSON.parse(row.allowedSenders) : []; } catch { allowedSenders = []; }
+  return { apiUrl: row.apiUrl, username: decryptSecret(row.usernameEncrypted), password: decryptSecret(row.passwordEncrypted), webhookToken: decryptSecret(row.webhookTokenEncrypted), phoneNumber: row.phoneNumber, allowedSenders };
+}
+
+export async function testAndroidGatewayCredentials(ownerUserId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not configured");
+  const rows = await db.select().from(lucyAndroidGatewayCredentials).where(eq(lucyAndroidGatewayCredentials.ownerUserId, ownerUserId)).limit(1);
+  const row = rows[0];
+  if (!row) return { ok: false, message: "No Android gateway settings are saved yet." };
+  const auth = Buffer.from(`${decryptSecret(row.usernameEncrypted)}:${decryptSecret(row.passwordEncrypted)}`).toString("base64");
+  try {
+    const response = await fetch(`${row.apiUrl}/docs`, { headers: { Authorization: `Basic ${auth}` } });
+    if (!response.ok) return { ok: false, message: `Android gateway returned HTTP ${response.status}. Check the gateway credentials and endpoint.` };
+    return { ok: true, message: "Android gateway endpoint is reachable." };
+  } catch {
+    return { ok: false, message: "Android gateway could not be reached. Check the URL, device network, and tunnel." };
+  }
 }
 
 export async function getPublicTwilioLaunchNumber() {

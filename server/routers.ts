@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, isSuperAdminUser, publicProcedure, router, superAdminProcedure } from "./_core/trpc";
 import { z } from "zod";
-import { getLlmCredentialStatus, getPublicTwilioLaunchNumber, getRedisCredentialStatus, getTavilyCredentialStatus, getTelnyxCredentialStatus, getTwilioCredentialStatus, isE164PhoneNumber, saveLlmCredentials, saveRedisCredentials, saveTavilyCredentials, saveTelnyxCredentials, saveTwilioCredentials, testLlmCredentials, testRedisCredentials, testTavilyCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
+import { getAndroidGatewayCredentialStatus, getLlmCredentialStatus, getPublicTwilioLaunchNumber, getRedisCredentialStatus, getTavilyCredentialStatus, getTelnyxCredentialStatus, getTwilioCredentialStatus, isE164PhoneNumber, saveAndroidGatewayCredentials, saveLlmCredentials, saveRedisCredentials, saveTavilyCredentials, saveTelnyxCredentials, saveTwilioCredentials, testAndroidGatewayCredentials, testLlmCredentials, testRedisCredentials, testTavilyCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
 import { getAgentRuns, getDashboardSummary, getQueueJobs } from "./lucy/dashboard";
 import { requestAgentRunCancellation } from "./lucy/agentPersistence";
 import { getMessageDetail } from "./lucy/history";
@@ -32,6 +32,22 @@ export const appRouter = router({
     agentRuns: adminProcedure.query(() => getAgentRuns()),
     cancelAgentRun: adminProcedure.input(z.object({ runId: z.string().uuid() })).mutation(async ({ input }) => ({ accepted: await requestAgentRunCancellation(input.runId) })),
     messageDetail: adminProcedure.input(z.object({ messageId: z.string().min(1).max(191) })).query(({ input }) => getMessageDetail(input.messageId)),
+  }),
+
+  androidGateway: router({
+    status: superAdminProcedure.query(({ ctx }) => getAndroidGatewayCredentialStatus(ctx.user.id)),
+    test: superAdminProcedure.mutation(({ ctx }) => testAndroidGatewayCredentials(ctx.user.id)),
+    save: superAdminProcedure.input(z.object({
+      apiUrl: z.string().url().max(1024),
+      username: z.string().min(1).max(512),
+      password: z.string().min(1).max(512),
+      webhookToken: z.string().min(8).max(512),
+      phoneNumber: z.string().refine(isE164PhoneNumber, "Use E.164 format, for example +15551234567"),
+      allowedSenders: z.array(z.string().refine(isE164PhoneNumber, "Use E.164 format, for example +15551234567")).min(1, "Add at least one allowlisted sender"),
+    })).mutation(async ({ ctx, input }) => {
+      await saveAndroidGatewayCredentials(ctx.user.id, input);
+      return { success: true } as const;
+    }),
   }),
 
   telnyx: router({

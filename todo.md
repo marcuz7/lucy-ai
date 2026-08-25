@@ -234,3 +234,6 @@
 - [x] Make the public Lucy launch number, native SMS link, and QR code derive from the configured Super-admin Twilio phone number, with a safe fallback and no secret exposure.
 
 - [x] Fix the public launch-number tRPC query returning HTML instead of JSON on the landing page, with regression coverage for the route integration.
+
+- [x] Add an optional Android SMS Gateway provider using the verified `/message` Basic Auth API and `sms:received` webhook contract, with encrypted server-side credentials and safe fallback.
+- [x] Add provider settings, inbound webhook normalization, outbound dispatch, sender allowlisting, replay protection, tests, and setup documentation for Android SMS Gateway.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decryptSecret, encryptSecret, isE164PhoneNumber, maskAccountSid, maskPhoneNumber, normalizeAllowedSenders, summarizeLlmCredential, twilioCredentialFailureMessage } from "./credentials";
+import { decryptSecret, encryptSecret, isE164PhoneNumber, maskAccountSid, maskPhoneNumber, normalizeAllowedSenders, summarizeLlmCredential, twilioCredentialFailureMessage, validateAndroidGatewayUrl } from "./credentials";
 
 describe("Lucy Twilio credentials", () => {
   it("encrypts and decrypts a token without storing the plaintext", () => {
@@ -30,6 +30,15 @@ describe("Lucy Twilio credentials", () => {
 
   it("normalizes only unique E.164 sender numbers", () => {
     expect(normalizeAllowedSenders(["+15550000000, +15550000000", "bad", "+15550000001"])).toEqual(["+15550000000", "+15550000001"]);
+  });
+
+  it("validates Android gateway endpoints and rejects unsafe production URLs", () => {
+    expect(validateAndroidGatewayUrl("https://api.sms-gate.app/3rdparty/v1/")).toBe("https://api.sms-gate.app/3rdparty/v1");
+    expect(() => validateAndroidGatewayUrl("ftp://gateway.example")).toThrow("http:// or https://");
+    const originalNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    expect(() => validateAndroidGatewayUrl("http://192.168.1.10:8080")).toThrow("HTTPS in production");
+    process.env.NODE_ENV = originalNodeEnv;
   });
 
   it("returns masked BYO LLM metadata without exposing the API key", () => {

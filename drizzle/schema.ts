@@ -23,6 +23,19 @@ export const lucyTwilioCredentials = mysqlTable("lucy_twilio_credentials", {
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
 
+export const lucyAndroidGatewayCredentials = mysqlTable("lucy_android_gateway_credentials", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerUserId: int("owner_user_id").notNull().unique(),
+  apiUrl: varchar("api_url", { length: 1024 }).notNull(),
+  usernameEncrypted: text("username_encrypted").notNull(),
+  passwordEncrypted: text("password_encrypted").notNull(),
+  webhookTokenEncrypted: text("webhook_token_encrypted").notNull(),
+  phoneNumber: varchar("phone_number", { length: 32 }).notNull(),
+  allowedSenders: text("allowed_senders"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
 export const lucyTelnyxCredentials = mysqlTable("lucy_telnyx_credentials", {
   id: int("id").autoincrement().primaryKey(),
   ownerUserId: int("owner_user_id").notNull().unique(),
@@ -164,6 +177,8 @@ export type LucyMessage = typeof lucyMessages.$inferSelect;
 export type InsertLucyMessage = typeof lucyMessages.$inferInsert;
 export type LucyTwilioCredentials = typeof lucyTwilioCredentials.$inferSelect;
 export type InsertLucyTwilioCredentials = typeof lucyTwilioCredentials.$inferInsert;
+export type LucyAndroidGatewayCredentials = typeof lucyAndroidGatewayCredentials.$inferSelect;
+export type InsertLucyAndroidGatewayCredentials = typeof lucyAndroidGatewayCredentials.$inferInsert;
 export type LucyTelnyxCredentials = typeof lucyTelnyxCredentials.$inferSelect;
 export type InsertLucyTelnyxCredentials = typeof lucyTelnyxCredentials.$inferInsert;
 export type LucyLlmCredentials = typeof lucyLlmCredentials.$inferSelect;

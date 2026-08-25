@@ -88,6 +88,31 @@ function RedisSection() {
   </section>;
 }
 
+function AndroidGatewaySection() {
+  const status = trpc.androidGateway.status.useQuery();
+  const save = trpc.androidGateway.save.useMutation({ onSuccess: () => status.refetch() });
+  const test = trpc.androidGateway.test.useMutation();
+  const [apiUrl, setApiUrl] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [webhookToken, setWebhookToken] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [allowedSenders, setAllowedSenders] = useState("");
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    save.mutate({ apiUrl, username, password, webhookToken, phoneNumber, allowedSenders: senderList(allowedSenders) });
+  };
+  const webhookUrl = typeof window === "undefined" || !webhookToken ? "/api/webhooks/android-gateway/incoming?token=YOUR_WEBHOOK_TOKEN" : `${window.location.origin}/api/webhooks/android-gateway/incoming?token=${encodeURIComponent(webhookToken)}`;
+
+  return <section className="provider-section">
+    <div className="provider-heading"><div><span className="eyebrow">CHANNEL 03 · ZERO-COST</span><h2>Android SMS Gateway</h2><p>Use an Android phone and SIM to receive and send Lucy messages without Twilio.</p></div><span className="provider-badge">PHONE</span></div>
+    <StatusNote configured={status.data?.configured}>Android gateway configured · <strong>{status.data?.apiHost}</strong> · {status.data?.phoneNumber} · {status.data?.allowedSendersCount} approved sender{status.data?.allowedSendersCount === 1 ? "" : "s"}</StatusNote>
+    <form onSubmit={submit} className="provider-form"><label>Gateway API URL<input type="url" value={apiUrl} onChange={event => setApiUrl(event.target.value)} placeholder="https://api.sms-gate.app/3rdparty/v1" required /><small className="field-help">Use the app’s Cloud Server URL for a hosted device, or an HTTPS tunnel to a local device API. Do not use localhost from Lucy’s server.</small></label><label>Gateway username<input value={username} onChange={event => setUsername(event.target.value)} placeholder="Android gateway username" required /></label><label>Gateway password<input type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="Android gateway password" required /></label><label>Webhook token<input type="password" value={webhookToken} onChange={event => setWebhookToken(event.target.value)} placeholder="Create a long random token" minLength={8} required /><small className="field-help">Lucy verifies this token on every inbound webhook. Keep it private.</small></label><label>Android phone number<input value={phoneNumber} onChange={event => setPhoneNumber(event.target.value)} placeholder="+15551234567" pattern="^\+[1-9]\d{7,14}$" required /></label><label>Approved sender numbers<textarea value={allowedSenders} onChange={event => setAllowedSenders(event.target.value)} placeholder="+15550000000\n+15550000001" rows={3} required /><small className="field-help">E.164 numbers separated by spaces, commas, or new lines. Only these senders can trigger Lucy.</small></label><button className="pill-button settings-button" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save Android gateway settings"}</button>{save.isSuccess && <p className="form-success"><ShieldCheck size={17} /> Android gateway settings saved securely.</p>}{save.error && <p className="form-error">Could not save Android gateway settings. Check the URL, credentials, token, and phone numbers.</p>}</form>
+    <div className="test-row"><button className="secondary-button" disabled={test.isPending || !status.data?.configured} onClick={() => test.mutate()}>{test.isPending ? "Testing…" : "Test Android gateway"}</button>{test.data && <span className={test.data.ok ? "test-ok" : "test-bad"}>{test.data.message}</span>}{test.error && <span className="test-bad">Android gateway connection failed.</span>}</div>
+    <div className="setup-note"><strong>Inbound webhook</strong><code>{webhookUrl}</code><span>Register this URL in the Android app for the <code>sms:received</code> event. The device API must be reachable from Lucy’s server through Cloud Server mode or an authenticated HTTPS tunnel.</span></div>
+  </section>;
+}
+
 function TwilioSection() {
   const status = trpc.twilio.status.useQuery();
   const save = trpc.twilio.save.useMutation({ onSuccess: () => status.refetch() });
@@ -133,5 +158,5 @@ function TelnyxSection() {
 }
 
 export default function AdminProviderSettings() {
-  return <ProtectedState><main className="settings-shell"><div className="settings-card wide provider-settings-card"><Link href="/admin" className="back-link"><ArrowLeft size={16} /> Back to dashboard</Link><div className="settings-title"><div className="settings-icon"><LockKeyhole /></div><div><span className="eyebrow">PROTECTED SUPER-ADMIN SETTINGS</span><h1>Provider secrets</h1></div></div><p className="settings-intro">Set up every Lucy messaging secret from one page. Credentials are encrypted before storage, masked in status responses, and never returned to the browser. Only the designated super-admin owner can view or change these settings.</p><div className="security-banner"><ShieldCheck size={18} /><div><strong>Super-admin only and encrypted</strong><span>Use your Lucy administrator account. Never paste these credentials into chat or public code.</span></div></div><SearchSection /><LlmSection /><RedisSection /><TwilioSection /><TelnyxSection /></div></main></ProtectedState>;
+  return <ProtectedState><main className="settings-shell"><div className="settings-card wide provider-settings-card"><Link href="/admin" className="back-link"><ArrowLeft size={16} /> Back to dashboard</Link><div className="settings-title"><div className="settings-icon"><LockKeyhole /></div><div><span className="eyebrow">PROTECTED SUPER-ADMIN SETTINGS</span><h1>Provider secrets</h1></div></div><p className="settings-intro">Set up every Lucy messaging secret from one page. Credentials are encrypted before storage, masked in status responses, and never returned to the browser. Only the designated super-admin owner can view or change these settings.</p><div className="security-banner"><ShieldCheck size={18} /><div><strong>Super-admin only and encrypted</strong><span>Use your Lucy administrator account. Never paste these credentials into chat or public code.</span></div></div><SearchSection /><LlmSection /><RedisSection /><AndroidGatewaySection /><TwilioSection /><TelnyxSection /></div></main></ProtectedState>;
 }

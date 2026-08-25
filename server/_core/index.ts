@@ -4,6 +4,7 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
+import { registerAndroidGatewayWebhook } from "../lucy/androidGatewayWebhook";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -41,6 +42,7 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   registerTwilioWebhook(app);
+  registerAndroidGatewayWebhook(app);
   registerTelnyxWebhook(app);
   // tRPC API
   app.use(
