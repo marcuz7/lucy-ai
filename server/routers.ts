@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, isSuperAdminUser, publicProcedure, router, superAdminProcedure } from "./_core/trpc";
 import { z } from "zod";
-import { getLlmCredentialStatus, getRedisCredentialStatus, getTavilyCredentialStatus, getTelnyxCredentialStatus, getTwilioCredentialStatus, isE164PhoneNumber, saveLlmCredentials, saveRedisCredentials, saveTavilyCredentials, saveTelnyxCredentials, saveTwilioCredentials, testLlmCredentials, testRedisCredentials, testTavilyCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
+import { getLlmCredentialStatus, getPublicTwilioLaunchNumber, getRedisCredentialStatus, getTavilyCredentialStatus, getTelnyxCredentialStatus, getTwilioCredentialStatus, isE164PhoneNumber, saveLlmCredentials, saveRedisCredentials, saveTavilyCredentials, saveTelnyxCredentials, saveTwilioCredentials, testLlmCredentials, testRedisCredentials, testTavilyCredentials, testTelnyxCredentials, testTwilioCredentials } from "./lucy/credentials";
 import { getAgentRuns, getDashboardSummary, getQueueJobs } from "./lucy/dashboard";
 import { requestAgentRunCancellation } from "./lucy/agentPersistence";
 import { getMessageDetail } from "./lucy/history";
@@ -20,6 +20,10 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+
+  launch: router({
+    number: publicProcedure.query(() => getPublicTwilioLaunchNumber()),
   }),
 
   dashboard: router({

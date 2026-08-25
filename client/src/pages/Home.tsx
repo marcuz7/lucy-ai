@@ -6,12 +6,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { QRCodeSVG } from "qrcode.react";
 import { Link } from "wouter";
 import { copyFeedbackLabel } from "./copyFeedback";
+import { trpc } from "@/lib/trpc";
 
 const pickleballImage = "/manus-storage/lucy-ai-pickleball-feature_0654d039.jpg";
 const dinnerImage = "/manus-storage/dinner-table_decb8fd1.jpg";
 const cabinImage = "/manus-storage/cabin-sunset_54a8ba8b.jpg";
-const launchNumber = "+84837841663";
-const launchSmsHref = `sms:${launchNumber}?body=${encodeURIComponent("Hi Lucy")}`;
+const fallbackLaunchNumber = "+84837841663";
 
 async function copyToClipboard(value: string) {
   if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(value);
@@ -51,6 +51,9 @@ function Header({ onText }: { onText: () => void }) {
 
 function PhoneMockup() {
   const [copied, setCopied] = useState(false);
+  const { data: configuredLaunchNumber } = trpc.launch.number.useQuery(undefined, { staleTime: 60_000 });
+  const launchNumber = configuredLaunchNumber || fallbackLaunchNumber;
+  const launchSmsHref = `sms:${launchNumber}?body=${encodeURIComponent("Hi Lucy")}`;
   const copyNumber = async () => { try { await copyToClipboard(launchNumber); setCopied(true); window.setTimeout(() => setCopied(false), 1800); } catch { setCopied(false); } };
   return <div className="phone-wrap" aria-label="Lucy in a group text message">
     <div className="phone">

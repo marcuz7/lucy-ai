@@ -318,6 +318,13 @@ export async function getRedisUrlForMemory() {
   return row ? decryptSecret(row.redisUrlEncrypted) : null;
 }
 
+export async function getPublicTwilioLaunchNumber() {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select({ phoneNumber: lucyTwilioCredentials.phoneNumber }).from(lucyTwilioCredentials).orderBy(desc(lucyTwilioCredentials.updatedAt)).limit(1);
+  return rows[0]?.phoneNumber ?? null;
+}
+
 export async function getTwilioCredentialStatus(ownerUserId: number) {
   const db = await getDb();
   if (!db) return { configured: false, accountSid: null, phoneNumber: null, allowedSenders: [], allowedSendersCount: 0, updatedAt: null };

@@ -230,3 +230,5 @@
 - [x] Diagnose the Tavily connection-test rejection and fix any request or validation defect while preserving safe fallback and secret redaction.
 
 - [x] Diagnose the Twilio credential rejection and fix any Lucy-side request or validation defect while preserving secret redaction and safe error handling.
+
+- [x] Make the public Lucy launch number, native SMS link, and QR code derive from the configured Super-admin Twilio phone number, with a safe fallback and no secret exposure.
