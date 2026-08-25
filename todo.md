@@ -237,3 +237,5 @@
 
 - [x] Add an optional Android SMS Gateway provider using the verified `/message` Basic Auth API and `sms:received` webhook contract, with encrypted server-side credentials and safe fallback.
 - [x] Add provider settings, inbound webhook normalization, outbound dispatch, sender allowlisting, replay protection, tests, and setup documentation for Android SMS Gateway.
+
+- [x] Expand README.md with Android SMS Gateway setup, webhook configuration, environment-variable reference, security guidance, and troubleshooting aligned with the current implementation.
