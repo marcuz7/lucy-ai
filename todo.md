@@ -232,3 +232,5 @@
 - [x] Diagnose the Twilio credential rejection and fix any Lucy-side request or validation defect while preserving secret redaction and safe error handling.
 
 - [x] Make the public Lucy launch number, native SMS link, and QR code derive from the configured Super-admin Twilio phone number, with a safe fallback and no secret exposure.
+
+- [x] Fix the public launch-number tRPC query returning HTML instead of JSON on the landing page, with regression coverage for the route integration.

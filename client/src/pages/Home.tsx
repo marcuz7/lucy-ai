@@ -51,7 +51,12 @@ function Header({ onText }: { onText: () => void }) {
 
 function PhoneMockup() {
   const [copied, setCopied] = useState(false);
-  const { data: configuredLaunchNumber } = trpc.launch.number.useQuery(undefined, { staleTime: 60_000 });
+  const { data: configuredLaunchNumber } = trpc.launch.number.useQuery(undefined, {
+    staleTime: 60_000,
+    retry: 3,
+    retryDelay: attempt => Math.min(250 * 2 ** attempt, 2_000),
+    refetchOnReconnect: true,
+  });
   const launchNumber = configuredLaunchNumber || fallbackLaunchNumber;
   const launchSmsHref = `sms:${launchNumber}?body=${encodeURIComponent("Hi Lucy")}`;
   const copyNumber = async () => { try { await copyToClipboard(launchNumber); setCopied(true); window.setTimeout(() => setCopied(false), 1800); } catch { setCopied(false); } };
