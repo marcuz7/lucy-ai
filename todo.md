@@ -199,9 +199,9 @@
 
 - [x] Diagnose and restore the repeated super-admin login failure on the canonical LucyAi domain while preserving exact-email authorization.
 
-- [ ] Verify the canonical-domain super-admin flow end to end with the exact `marcuz7@gmail.com` account and confirm `/admin/settings` loads provider sections.
-- [ ] If the exact account is still denied, add a controlled server-side identity diagnostic for openId/email matching and fix any mismatch without weakening the boundary.
-- [ ] Add regression coverage or documented verification for wrong-account recovery plus successful canonical super-admin access.
+- [x] Verify the canonical-domain super-admin flow end to end with the exact `marcuz7@gmail.com` account and confirm `/admin/settings` loads provider sections.
+- [x] If the exact account is still denied, add a controlled server-side identity diagnostic for openId/email matching and fix any mismatch without weakening the boundary; the stale owner-ID dependency was removed instead, with exact-email regression coverage.
+- [x] Add regression coverage or documented verification for wrong-account recovery plus successful canonical super-admin access.
 
 - [x] Fix the canonical public/admin authentication entry point so it clearly supports existing-account login, not only signup, and verify account switching.
 
